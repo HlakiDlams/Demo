@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#ff6eb4"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="HF543"/>
+<meta name="description" content="HFactor543 Studios — Creative Empire Unlocked. Music · Film · Art · Fashion · Code · Comics."/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+<title>HFactor543 Studios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+@font-face {
+  font-family: 'Waltograph';
+  src: url('https://db.onlinewebfonts.com/t/c51b4c2e57ac4eba8fc1aac853a89b05.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --bg: #080808;
+  --panel: #161616;
+  --border: #222;
+  --pink: #ff6eb4;
+  --pink-dim: #c44d87;
+  --white: #f0ece4;
+  --muted: #888;
+  --font-logo: 'Orbitron', monospace;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-italic: 'DM Serif Display', serif;
+  --font-body: 'Space Mono', monospace;
+  --font-boot: 'Share Tech Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  padding-bottom: 80px;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.4;
+}
+
+/* Boot Screen */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-boot);
+  padding: 2rem;
+}
+
+#boot-log {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+.boot-line {
+  color: var(--pink);
+  font-size: 12px;
+  margin-bottom: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.boot-line.visible { opacity: 1; }
+
+#boot-progress-wrap {
+  width: 100%;
+  max-width: 600px;
+  height: 2px;
+  background: #111;
+  margin-top: 1rem;
+}
+
+#boot-progress {
+  height: 100%;
+  background: var(--pink);
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* PWA Install Banner */
+#pwa-banner {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9997;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.2rem;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+#pwa-banner span { flex: 1; color: var(--white); }
+
+#pwa-install-btn {
+  background: var(--pink);
+  color: #000;
+  border: none;
+  padding: 0.4rem 1rem;
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#pwa-dismiss {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+/* Particles */
+#particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--pink);
+  border-radius: 50%;
+  animation: float linear infinite;
+  opacity: 0;
+}
+
+@keyframes float {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+}
+
+/* Main Page */
+#main-page { display: none; position: relative; z-index: 1; }
+
+/* Header */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,8,8,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: var(--font-logo);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--pink);
+  letter-spacing: 0.05em;
+  text-decoration: none;
+}
+
+.logo span { color: var(--white); }
+
+/* Hamburger */
+.hamburger {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--white);
+  transition: all 0.3s;
+}
+
+/* Nav Overlay */
+#nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+body.drawer-open #nav-overlay {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Nav Drawer */
+#nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 280px;
+  background: #111;
+  z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+body.drawer-open #nav-drawer {
+  transform: translateX(0);
+}
+
+#close-drawer {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem 1.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+#close-drawer:hover { color: var(--pink); }
+
+#nav-drawer ul {
+  list-style: none;
+  padding: 0 0 2rem;
+}
+
+#nav-drawer ul li a {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 12px;
+  border-left: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+#nav-drawer ul li a:hover {
+  color: var(--pink);
+  border-left-color: var(--pink);
+  background: rgba(255,110,180,0.05);
+}
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(8,8,8,0.95);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  z-index: 500;
+  padding-bottom: env(safe-area-inset-bottom);
+  backdrop-filter: blur(10px);
+}
+
+.bottom-nav button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 18px;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav button .nav-label {
+  font-family: var(--font-body);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bottom-nav button:hover,
+.bottom-nav button.active {
+  color: var(--pink);
+}
+
+/* Sections */
+section {
+  padding: 5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  section { padding: 3.5rem 1.2rem; }
+}
+
+.section-label {
+  font-family: var(--font-boot);
+  font-size: 11px;
+  color: var(--pink);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 0.95;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.section-sub {
+  font-family: var(--font-italic);
+  font-style: italic;
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 2.5rem;
+}
+
+/* Hero */
+#hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 2rem 5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  #hero { padding: 0 1.2rem 5rem; }
+}
+
+.hero-glitch {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 18vw, 14rem);
+  line-height: 0.85;
+  color: var(--white);
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.hero-glitch::before,
+.hero-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-glitch::before {
+  color: var(--pink);
+  animation: glitch1 4s infinite;
+  clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+}
+
+.hero-glitch::after {
+  color: #00ffff;
+  animation: glitch2 4s infinite;
+  clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+}
+
+@keyframes glitch1 {
+  0%, 90%, 100% { transform: none; opacity: 0; }
+  92% { transform: translateX(-4px); opacity: 0.8; }
+  94% { transform: translateX(4px); opacity: 0.8; }
+  96% { transform: translateX(-2px); opacity: 0.8; }
+  98% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes glitch2 {
+  0%, 85%, 100% { transform: none; opacity: 0; }
+  87% { transform: translateX(4px); opacity: 0.7; }
+  89% { transform: translateX(-4px); opacity: 0.7; }
+  91% { transform: translateX(2px); opacity: 0.7; }
+  93% { transform: translateX(0); opacity: 0; }
+}
+
+.hero-sub {
+  font-family: var(--font-italic);
+  font-style: italic;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  color: var(--pink);
+  margin-bottom: 0.5rem;
+}
+
+.hero-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 480px;
+  margin-bottom: 2rem;
+}
+
+.hero-cta {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  border: 1px solid var(--pink);
+  color: var(--pink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.hero-cta:hover {
+  background: var(--pink);
+  color: #000;
+}
+
+/* Cards Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .cards-grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--panel);
+  padding: 1.5rem;
+  transition: background 0.2s;
+}
+
+.card:hover { background: #1a1a1a; }
+
+.card-image {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.card-image-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #0d0d0d;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-num {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--pink);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.25rem;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.card-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.card-action {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.card-action:hover { border-bottom-color: var(--pink); }
+
+/* Social Grids */
+.social-section-label {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 2rem 0 0.75rem;
+}
+
+.social-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.social-item {
+  background: var(--panel);
+  padding: 1.25rem;
+  text-decoration: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  transition: background 0.2s;
+}
+
+.social-item:hover { background: #1a1a1a; }
+
+.social-icon { font-size: 1.25rem; flex-shrink: 0; }
+
+.social-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--white);
+  display: block;
+}
+
+.social-handle {
+  font-size: 10px;
+  color: var(--muted);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Web Items */
+.web-list {
+  margin-top: 2rem;
+  border: 1px solid var(--border);
+}
+
+.web-item {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.web-item:last-child { border-bottom: none; }
+
+.web-item-info { flex: 1; }
+
+.web-item-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--white);
+  margin-bottom: 0.25rem;
+}
+
+.web-item-desc {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.web-item-year {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--pink);
+}
+
+.web-item-link {
+  font-size: 11px;
+  color: var(--pink);
+  text-decoration: none;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.web-item-link:hover { text-decoration: underline; }
+
+/* Projects */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .projects-grid { grid-template-columns: 1fr; }
+}
+
+.project-card {
+  background: var(--panel);
+  padding: 1.5rem;
+  transition: background 0.2s;
+}
+
+.project-card:hover { background: #1a1a1a; }
+
+.project-image {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.project-image-placeholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #0d0d0d;
+  margin-bottom: 0.75rem;
+}
+
+.project-status {
+  display: inline-block;
+  font-family: var(--font-boot);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  margin-bottom: 0.5rem;
+}
+
+.status-active { background: rgba(0,255,100,0.1); color: #00ff64; border: 1px solid #00ff64; }
+.status-complete { background: rgba(255,110,180,0.1); color: var(--pink); border: 1px solid var(--pink); }
+.status-dev { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid #ffc800; }
+
+.project-cat {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.project-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.project-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Skills */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+.skill-item {
+  background: var(--panel);
+  padding: 1.25rem;
+}
+
+.skill-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--pink);
+  margin-bottom: 0.25rem;
+}
+
+.skill-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Profile */
+.profile-block {
+  margin-top: 2rem;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.profile-name {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: var(--white);
+  margin-bottom: 0.25rem;
+}
+
+.profile-handle {
+  font-family: var(--font-boot);
+  font-size: 11px;
+  color: var(--pink);
+  margin-bottom: 1rem;
+}
+
+.profile-bio {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  white-space: pre-line;
+}
+
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.profile-tag {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+/* Merch */
+.merch-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  margin-bottom: 0;
+  scrollbar-width: none;
+}
+
+.merch-tabs::-webkit-scrollbar { display: none; }
+
+.merch-tab {
+  flex-shrink: 0;
+  padding: 0.6rem 1.2rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.merch-tab:last-child { border-right: none; }
+.merch-tab.active { background: var(--panel); color: var(--pink); }
+
+.merch-panel { display: none; }
+.merch-panel.active { display: block; }
+
+.merch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
+}
+
+@media (max-width: 768px) {
+  .merch-grid { grid-template-columns: 1fr; }
+}
+
+.merch-item {
+  background: var(--panel);
+  padding: 1.5rem;
+  transition: background 0.2s;
+}
+
+.merch-item:hover { background: #1a1a1a; }
+
+.merch-image {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.merch-image-placeholder {
+  width: 100%;
+  aspect-ratio: 1/1;
+  background: #0d0d0d;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.merch-badge {
+  display: inline-block;
+  font-family: var(--font-boot);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  padding: 2px 8px;
+  margin-bottom: 0.5rem;
+}
+
+.badge-soon { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid #ffc800; }
+.badge-digital { background: rgba(255,110,180,0.1); color: var(--pink); border: 1px solid var(--pink); }
+.badge-new { background: rgba(0,255,100,0.1); color: #00ff64; border: 1px solid #00ff64; }
+
+.merch-cat {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.merch-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.merch-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.merch-price {
+  font-family: var(--font-boot);
+  font-size: 11px;
+  color: var(--pink);
+  margin-bottom: 0.75rem;
+}
+
+.merch-btn {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--pink);
+  color: var(--pink);
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.merch-btn:hover { background: var(--pink); color: #000; }
+
+/* Misc Grid */
+.misc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+.misc-item {
+  background: var(--panel);
+  padding: 1.25rem;
+}
+
+.misc-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--pink);
+  margin-bottom: 0.25rem;
+}
+
+.misc-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Contact Form */
+.contact-form {
+  margin-top: 2rem;
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-boot);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: var(--pink);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-submit {
+  padding: 0.75rem 2rem;
+  background: none;
+  border: 1px solid var(--pink);
+  color: var(--pink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-submit:hover { background: var(--pink); color: #000; }
+
+#contact-success {
+  display: none;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0,255,100,0.1);
+  border: 1px solid #00ff64;
+  color: #00ff64;
+  font-family: var(--font-boot);
+  font-size: 11px;
+}
+
+/* Sub-section label */
+.sub-section-label {
+  font-family: var(--font-boot);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: 3rem 0 0.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Footer */
+footer {
+  padding: 3rem 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.footer-logo {
+  font-family: var(--font-logo);
+  font-size: 1rem;
+  color: var(--pink);
+  margin-bottom: 0.5rem;
+}
+
+.footer-copy {
+  font-size: 11px;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+
+<!-- Boot Screen -->
+<div id="boot-screen">
+  <div id="boot-log"></div>
+  <div id="boot-progress-wrap">
+    <div id="boot-progress"></div>
+  </div>
+</div>
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner">
+  <span>Install HF543 Studios for the full experience</span>
+  <button id="pwa-install-btn">Install</button>
+  <button id="pwa-dismiss">✕</button>
+</div>
+
+<!-- Particles -->
+<div id="particles"></div>
+
+<!-- Main Page -->
+<div id="main-page">
+
+  <header>
+    <a class="logo" href="#hero">HF<span>543</span></a>
+    <button class="hamburger" id="hamburger-btn" aria-label="Open menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <div id="nav-overlay"></div>
+
+  <nav id="nav-drawer">
+    <button id="close-drawer">✕ Close</button>
+    <ul>
+      <li><a href="#hero" class="drawer-link">01 — Home</a></li>
+      <li><a href="#music" class="drawer-link">02 — Music</a></li>
+      <li><a href="#film" class="drawer-link">03 — Film</a></li>
+      <li><a href="#series" class="drawer-link">04 — Series</a></li>
+      <li><a href="#illustration" class="drawer-link">05 — Illustration</a></li>
+      <li><a href="#comics" class="drawer-link">06 — Comics</a></li>
+      <li><a href="#apps" class="drawer-link">07 — Apps</a></li>
+      <li><a href="#fashion" class="drawer-link">08 — Fashion</a></li>
+      <li><a href="#youtube" class="drawer-link">09 — YouTube</a></li>
+      <li><a href="#socials" class="drawer-link">10 — Socials</a></li>
+      <li><a href="#web" class="drawer-link">11 — Web</a></li>
+      <li><a href="#projects" class="drawer-link">12 — Projects</a></li>
+      <li><a href="#profile" class="drawer-link">13 — Profile</a></li>
+      <li><a href="#merch" class="drawer-link">14 — Merch</a></li>
+      <li><a href="#contact" class="drawer-link">15 — Contact</a></li>
+      <li><a href="#misc" class="drawer-link">16 — Misc</a></li>
+      <li><a href="/admin/" class="drawer-link">⚙ Admin</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="hero-glitch" data-text="HFACTOR543">HFACTOR543</div>
+    <div class="hero-sub">Creative Empire Unlocked</div>
+    <div class="hero-desc">Music · Film · Art · Fashion · Code · Comics · Gaming — all under one roof, all from a single unseen force. HFactor543 Studios.</div>
+    <a href="#music" class="hero-cta">Enter the Studio →</a>
+  </section>
+
+  <!-- Music -->
+  <section id="music">
+    <div class="section-label">02 — Discography</div>
+    <div class="section-title">Music</div>
+    <div class="section-sub">Tracks, EPs, soundscapes, and studio releases.</div>
+    <div class="cards-grid" id="music-cards"></div>
+  </section>
+
+  <!-- Film -->
+  <section id="film">
+    <div class="section-label">03 — Filmography</div>
+    <div class="section-title">Film</div>
+    <div class="section-sub">Short films, features, and visual storytelling.</div>
+    <div class="cards-grid" id="film-cards"></div>
+  </section>
+
+  <!-- Series -->
+  <section id="series">
+    <div class="section-label">04 — Serialised</div>
+    <div class="section-title">Series</div>
+    <div class="section-sub">Episodic content and ongoing story arcs.</div>
+    <div class="cards-grid" id="series-cards"></div>
+  </section>
+
+  <!-- Illustration -->
+  <section id="illustration">
+    <div class="section-label">05 — Visual Art</div>
+    <div class="section-title">Illustration</div>
+    <div class="section-sub">Paintings, digital art, and visual narratives.</div>
+    <div class="cards-grid" id="illustration-cards"></div>
+  </section>
+
+  <!-- Comics -->
+  <section id="comics">
+    <div class="section-label">06 — Sequential Art</div>
+    <div class="section-title">Comics</div>
+    <div class="section-sub">Original comics and graphic narratives.</div>
+    <div class="cards-grid" id="comics-cards"></div>
+  </section>
+
+  <!-- Apps -->
+  <section id="apps">
+    <div class="section-label">07 — Software</div>
+    <div class="section-title">Apps</div>
+    <div class="section-sub">Mobile apps, tools, and digital builds.</div>
+    <div class="cards-grid" id="apps-cards"></div>
+  </section>
+
+  <!-- Fashion -->
+  <section id="fashion">
+    <div class="section-label">08 — Style</div>
+    <div class="section-title">Fashion</div>
+    <div class="section-sub">Looks, editorials, garment design, and curated style.</div>
+    <div class="cards-grid" id="fashion-cards"></div>
+  </section>
+
+  <!-- YouTube -->
+  <section id="youtube">
+    <div class="section-label">09 — Channel</div>
+    <div class="section-title">YouTube</div>
+    <div class="section-sub">Main channel, gaming sub-channel, and reactions.</div>
+    <div class="cards-grid" id="youtube-main-cards"></div>
+    <div class="sub-section-label">Gaming</div>
+    <div class="cards-grid" id="youtube-gaming-cards"></div>
+    <div class="sub-section-label">Reactions</div>
+    <div class="cards-grid" id="youtube-reactions-cards"></div>
+  </section>
+
+  <!-- Socials -->
+  <section id="socials">
+    <div class="section-label">10 — Connect</div>
+    <div class="section-title">Socials</div>
+    <div class="section-sub">Every platform. One studio.</div>
+    <div class="social-section-label">Video &amp; Live</div>
+    <div class="social-grid" id="socials-video"></div>
+    <div class="social-section-label">Messaging &amp; Community</div>
+    <div class="social-grid" id="socials-messaging"></div>
+    <div class="social-section-label">Social Media</div>
+    <div class="social-grid" id="socials-social"></div>
+    <div class="social-section-label">Creative &amp; Writing</div>
+    <div class="social-grid" id="socials-creative"></div>
+  </section>
+
+  <!-- Web -->
+  <section id="web">
+    <div class="section-label">11 — Digital Builds</div>
+    <div class="section-title">Web</div>
+    <div class="section-sub">Sites, tools, and web experiments built by the studio.</div>
+    <div class="web-list" id="web-items"></div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="section-label">12 — Studio Work</div>
+    <div class="section-title">Projects</div>
+    <div class="section-sub">Design, engineering, and creative builds.</div>
+    <div class="projects-grid" id="project-cards"></div>
+    <div class="sub-section-label">Skills &amp; Capabilities</div>
+    <div class="skills-grid" id="skills-grid"></div>
+  </section>
+
+  <!-- Profile -->
+  <section id="profile">
+    <div class="section-label">13 — Identity</div>
+    <div class="section-title">Profile</div>
+    <div class="section-sub">The studio. The force behind the work.</div>
+    <div id="profile-block"></div>
+  </section>
+
+  <!-- Merch -->
+  <section id="merch">
+    <div class="section-label">14 — Store</div>
+    <div class="section-title">Merch</div>
+    <div class="section-sub">Apparel, collectibles, accessories, digital drops, and prints.</div>
+    <div class="merch-tabs">
+      <button class="merch-tab active" data-tab="apparel">Apparel</button>
+      <button class="merch-tab" data-tab="collectibles">Collectibles</button>
+      <button class="merch-tab" data-tab="accessories">Accessories</button>
+      <button class="merch-tab" data-tab="digital">Digital</button>
+      <button class="merch-tab" data-tab="prints">Prints</button>
+    </div>
+    <div class="merch-panel active" id="merch-apparel"></div>
+    <div class="merch-panel" id="merch-collectibles"></div>
+    <div class="merch-panel" id="merch-accessories"></div>
+    <div class="merch-panel" id="merch-digital"></div>
+    <div class="merch-panel" id="merch-prints"></div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="section-label">15 — Connect</div>
+    <div class="section-title">Contact Us</div>
+    <div class="section-sub">Bookings, collabs, commissions, and enquiries.</div>
+    <form class="contact-form" id="contact-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label" for="contact-name">Name</label>
+        <input class="form-input" type="text" id="contact-name" name="name" required placeholder="Your name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="contact-email">Email</label>
+        <input class="form-input" type="email" id="contact-email" name="email" required placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="contact-subject">Subject</label>
+        <input class="form-input" type="text" id="contact-subject" name="subject" required placeholder="What is this about?"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="contact-message">Message</label>
+        <textarea class="form-textarea" id="contact-message" name="message" required placeholder="Write your message here..."></textarea>
+      </div>
+      <button class="form-submit" type="submit">Send Message →</button>
+      <div id="contact-success">✓ Message sent. We'll be in touch.</div>
+    </form>
+  </section>
+
+  <!-- Misc -->
+  <section id="misc">
+    <div class="section-label">16 — Everything Else</div>
+    <div class="section-title">Misc</div>
+    <div class="section-sub">Experiments, collabs, archive, and the rest.</div>
+    <div class="misc-grid" id="misc-items"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">HF543 STUDIOS</div>
+    <div class="footer-copy">© 2026 HFactor543 Studios · All rights reserved · Built by the studio.</div>
+  </footer>
+
+</div><!-- end #main-page -->
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button onclick="document.querySelector('#hero').scrollIntoView({behavior:'smooth'})">
+    <span>🏠</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button onclick="document.querySelector('#music').scrollIntoView({behavior:'smooth'})">
+    <span>🎵</span>
+    <span class="nav-label">Music</span>
+  </button>
+  <button onclick="document.querySelector('#illustration').scrollIntoView({behavior:'smooth'})">
+    <span>🎨</span>
+    <span class="nav-label">Art</span>
+  </button>
+  <button onclick="document.querySelector('#merch').scrollIntoView({behavior:'smooth'})">
+    <span>🛍️</span>
+    <span class="nav-label">Shop</span>
+  </button>
+  <button id="bottom-menu-btn">
+    <span>☰</span>
+    <span class="nav-label">Menu</span>
+  </button>
+</nav>
+
+<script>
+// ============================================================
+// DEFAULT CONTENT
+// ============================================================
+const DEFAULT_CONTENT = {
+  music: [
+    {icon:'🎵',num:'001',title:'Track Title Here',desc:'Genre · Year · Short description of the track or project.',action:'Listen',link:'#',image:''},
+    {icon:'🎧',num:'002',title:'Another Release',desc:'Add your music releases, EPs, singles, or soundscapes here.',action:'Listen',link:'#',image:''},
+    {icon:'🎼',num:'—',title:'More Coming',desc:'Slots for future releases. The discography grows.',action:'Stay Tuned',link:'#',image:''},
+  ],
+  film: [
+    {icon:'🎬',num:'001',title:'Film Title Here',desc:'Genre · Runtime · A short synopsis of the film goes here.',action:'Watch',link:'#',image:''},
+    {icon:'📽️',num:'—',title:'In Development',desc:'Short films in pre-production. Details to be announced.',action:'Coming Soon',link:'#',image:''},
+  ],
+  series: [
+    {icon:'📺',num:'S01',title:'Series Title',desc:'Episodes · Genre · A brief series logline or pitch goes here.',action:'Watch',link:'#',image:''},
+    {icon:'🎞️',num:'—',title:'New Season TBA',desc:'More serialised storytelling is in the works.',action:'Follow',link:'#',image:''},
+  ],
+  illustration: [
+    {icon:'🖼️',num:'001',title:'Piece Title',desc:'Medium · Year · Description or series name for this piece.',action:'View',link:'#',image:''},
+    {icon:'✏️',num:'002',title:'Digital Collage',desc:'Layered digital compositions — aesthetic and narrative-driven.',action:'View',link:'#',image:''},
+    {icon:'🎨',num:'—',title:'Gallery Grows',desc:'New pieces added as the studio produces them.',action:'Explore',link:'#',image:''},
+  ],
+  comics: [
+    {icon:'📖',num:'VOL 01',title:'Comic Title',desc:'Issues · Genre · A short summary of the story and world.',action:'Read',link:'#',image:''},
+    {icon:'🗂️',num:'—',title:'New Arc TBA',desc:'Next story arc in the works. Characters, worlds, and lore incoming.',action:'Preview',link:'#',image:''},
+  ],
+  apps: [
+    {icon:'📱',num:'APP 01',title:'App Name',desc:'Platform · Category · Brief description of what the app does.',action:'Download',link:'#',image:''},
+    {icon:'💻',num:'—',title:'In Development',desc:'Apps currently being built at HFactor543 Studios.',action:'Watch Space',link:'#',image:''},
+  ],
+  fashion: [
+    {icon:'🖤',num:'LOOK 01',title:'Look / Outfit Title',desc:'Season · Aesthetic direction · Notes on the pieces, inspiration, or styling choices.',action:'View Look',link:'#',image:''},
+    {icon:'🎀',num:'CONCEPT',title:'Design Concept',desc:'Original garment or concept designs — sketches, mood boards, fabric choices.',action:'Explore',link:'#',image:''},
+    {icon:'🧵',num:'EDIT 01',title:'Curated Edit',desc:'Curated collections and style edits — thematic, seasonal, or identity-driven.',action:'Browse',link:'#',image:''},
+    {icon:'📸',num:'SHOOT',title:'Editorial Shoot',desc:'Photography and visual direction for fashion — self-styled or collaborative.',action:'View',link:'#',image:''},
+  ],
+  youtubeMain: [
+    {icon:'▶️',num:'MAIN',title:'HFactor543 Studios',desc:'Main channel — all studio output. Creative content, releases, series, and everything in between.',action:'Subscribe',link:'#',image:''},
+    {icon:'🎬',num:'LATEST',title:'Latest Upload',desc:'Most recent video — update this whenever something drops.',action:'Watch Now',link:'#',image:''},
+    {icon:'📌',num:'PLAYLISTS',title:'Organised by Series',desc:'Playlists by theme, series, or content type — making the archive navigable.',action:'Browse',link:'#',image:''},
+    {icon:'⚡',num:'SHORTS',title:'Shorts & Clips',desc:'Short-form drops, highlights, and quick content from across the studio.',action:'View',link:'#',image:''},
+  ],
+  youtubeGaming: [
+    {icon:'🎮',num:'GAME 01',title:'The Sims 4',desc:"Gameplay, mods, storytelling, and custom builds. The studio's signature game content.",action:'Watch',link:'#',image:''},
+    {icon:'⛏️',num:'GAME 02',title:'Minecraft',desc:'Builds, survival worlds, and creative mode projects — documented on channel.',action:'Watch',link:'#',image:''},
+    {icon:'🏆',num:'GAME 03',title:'Fortnite',desc:'Highlights, clips, and gameplay moments — casual and competitive.',action:'Watch',link:'#',image:''},
+    {icon:'🌐',num:'GAME 04',title:'Roblox',desc:'Game exploration, community play, and Roblox content from the studio.',action:'Watch',link:'#',image:''},
+  ],
+  youtubeReactions: [
+    {icon:'😱',num:'REACT 01',title:'Music Reactions',desc:'First listens, deep dives, and unfiltered takes on albums, singles, and drops.',action:'Watch',link:'#',image:''},
+    {icon:'🎥',num:'REACT 02',title:'Film & Show Reactions',desc:'Real-time reactions to trailers, films, and series moments worth watching.',action:'Watch',link:'#',image:''},
+    {icon:'🔥',num:'REACT 03',title:'Viral Content',desc:'Reacting to what the internet cannot stop talking about — trends, moments, madness.',action:'Watch',link:'#',image:''},
+    {icon:'💬',num:'REACT 04',title:'Commentary',desc:'Longer form opinion content — thoughts, takes, and conversations that matter.',action:'Watch',link:'#',image:''},
+  ],
+  socialsVideo: [
+    {icon:'▶️',name:'YouTube',handle:'@HFactor543Studios',url:'#'},
+    {icon:'🟣',name:'Twitch',handle:'Link coming',url:'https://www.twitch.tv/'},
+  ],
+  socialsMessaging: [
+    {icon:'✈️',name:'Telegram',handle:'Channel + Chatbot',url:'#'},
+    {icon:'💬',name:'WhatsApp',handle:'Channel',url:'#'},
+    {icon:'🎮',name:'Discord',handle:'Studio Server',url:'#'},
+  ],
+  socialsSocial: [
+    {icon:'📸',name:'Instagram',handle:'Link coming',url:'#'},
+    {icon:'🧵',name:'Threads',handle:'Link coming',url:'#'},
+    {icon:'🌐',name:'Facebook',handle:'Link coming',url:'#'},
+    {icon:'🐦',name:'X / Twitter',handle:'Link coming',url:'#'},
+    {icon:'🎵',name:'TikTok',handle:'Link coming',url:'#'},
+    {icon:'📌',name:'Pinterest',handle:'Link coming',url:'#'},
+  ],
+  socialsCreative: [
+    {icon:'📖',name:'Wattpad',handle:'Stories & Scripts',url:'#'},
+    {icon:'🔮',name:'Luna AI',handle:'poe.com/Luna_Apollo_AI',url:'https://poe.com/Luna_Apollo_AI'},
+    {icon:'💼',name:'LinkedIn',handle:'Link coming',url:'#'},
+    {icon:'🐙',name:'GitHub',handle:'Code & Projects',url:'#'},
+  ],
+  web: [
+    {name:'Project Name',desc:'Short description of the site or web tool.',year:'2025',url:'#',linkText:'Visit →'},
+    {name:'Another Site',desc:'Built for X purpose. Stack or tools used.',year:'2025',url:'#',linkText:'Visit →'},
+    {name:'Luna AI',desc:'Avatar AI assistant — WIP draft on Poe. Will go independent.',year:'2026',url:'https://poe.com/Luna_Apollo_AI',linkText:'Visit →'},
+    {name:'HF543 Studios Site',desc:'HFactor543 Studios official web presence.',year:'2026',url:'#',linkText:"You're here →"},
+  ],
+  projects: [
+    {status:'Active',statusClass:'status-active',cat:'Branding / Design',name:'Luna AI',desc:'Logo design and brand identity — black and baby pink palette. A clean, stylized identity for an AI persona.',image:''},
+    {status:'Complete',statusClass:'status-complete',cat:'Branding / YouTube',name:'HF543 Banner',desc:'YouTube channel banner and full branding package for HFactor543 Studios digital presence.',image:''},
+    {status:'In Dev',statusClass:'status-dev',cat:'Engineering / Construction',name:'Build Practice 01',desc:"Technical exercise — structural, mechanical, or design engineering. Document what you built, what you learned, and what you'd do differently.",image:''},
+    {status:'Planned',statusClass:'status-dev',cat:'Engineering / Technical',name:'Next Challenge',desc:'Slot for the next engineering or constructive skills exercise. Drop specs, sketches, or outcomes here as you go.',image:''},
+  ],
+  skills: [
+    {title:'Structural Design',sub:'Load-bearing logic, material properties, basic construction principles.'},
+    {title:'Technical Drawing',sub:'Blueprints, schematics, EGD-style technical illustration and annotation.'},
+    {title:'Digital Fabrication',sub:'CAD tools, digital modelling, prototyping concepts and workflows.'},
+    {title:'Systems Thinking',sub:'How parts connect into wholes — across engineering, code, and design.'},
+  ],
+  profile: {
+    name:'HFactor543',
+    handle:'@HFactor543Studios · Avatar-Run Creative Studio',
+    bio:'HFactor543 Studios is a creative entity operating through an avatar. Music. Film. Art. Fashion. Code. Comics. Gaming. — All under one roof, all built by a single unseen force.\n\nThe Factor stands on its own. The studio speaks for itself.',
+    tags:['Director','Illustrator','Composer','Developer','Writer','Designer','Storyteller','South Africa'],
+  },
+  merch: {
+    apparel: [
+      {icon:'🖤',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Spirit Shadow Hoodie',desc:'Oversized black hoodie. Pink neon HF543 logo on back, Spirit Shadow text on chest. Premium heavyweight fabric.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'👕',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'HF543 Graphic Tee',desc:'Black tee with HFactor543 Studios front print. Pink accent lettering, studio logo on sleeve.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'👟',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Platform Sneaker Collab',desc:"Inspired by HFactor543's signature kicks. Black/white build with pink glow sole detail. Limited run.",price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎀',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Spirit Shadow Jacket',desc:"Black and white utility jacket. Inspired by HFactor543's signature techwear fit. Pink accent zippers.",price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    collectibles: [
+      {icon:'🧸',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'HFactor543 Plushie',desc:'Soft plush figure of Spirit Shadow. Black bow, pink lollipop, full outfit detail. Collectible series.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🗿',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'Spirit Shadow Action Figure',desc:'Articulated action figure. Includes bladed fan prop, ribbon pouch detail, deployable accessories.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🖨️',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'3D Printed Model · HF543',desc:'High-detail 3D printed figurine. Full character in signature stance. Hand-painted limited edition.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    accessories: [
+      {icon:'🔑',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'HF543 Keychain',desc:'Metal keychain. HFactor543 logo with pink enamel fill. Comes in black and silver finish.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎀',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'Spirit Shadow Hair Bow',desc:"Oversized black satin bow. Replica of HFactor543's signature piece. One size fits all.",price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎒',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'HF543 Tote Bag',desc:'Black canvas tote. Pink studio logo print. Utility meets aesthetic — everyday carry.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📿',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'Spirit Shadow Choker',desc:"Black choker with pink center crystal. Replica of HFactor543's signature accessory piece.",price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    digital: [
+      {icon:'🖼️',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'Spirit Shadow Wallpaper Pack',desc:'4K wallpapers featuring HFactor543 in cinematic poses. Desktop and mobile versions. Instant download.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎨',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'HF543 Sticker Pack',desc:'Digital sticker set. Expressions, accessories, logo marks. Compatible with WhatsApp, Telegram, iMessage.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📱',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'HF543 App',desc:'Studio companion app. Content hub, exclusive drops, avatar interaction, studio updates. Coming to Android + iOS.',price:'Free / Premium TBD',btn:'Notify Me',image:''},
+      {icon:'🎵',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'Sound Pack · Spirit Shadow',desc:'HF543 original audio — notification sounds, ringtones, ambient studio tracks. Instant download.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    prints: [
+      {icon:'🖼️',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Spirit Shadow Poster · A2',desc:'Full character art print. HFactor543 in signature pose with Spirit Shadow backdrop. Museum quality paper.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📋',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Character Sheet Print',desc:'The official HF543 character reference sheet as a collectible art print. Front/Side/Back views, face sheet, full specs.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🌸',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Spirit Bloom Art Print',desc:'Signature move captured as art. HF543 mid Spirit Bloom — fan open, neon flower aura expanding. Limited edition.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📓',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'HF543 Zine · Vol. 01',desc:'First studio zine. Art, lore, behind the scenes, character breakdowns. Physical collectible print run.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+  },
+  misc: [
+    {title:'Experiments',sub:"Creative tests, concepts that didn't fit a box. Loose work and wild ideas."},
+    {title:'Collabs',sub:'Joint work with other creatives. Guest appearances, features, and partnerships.'},
+    {title:'Archive',sub:"Older work. Early pieces. The beginning of the studio's story."},
+    {title:'Writings',sub:"Essays, notes, scripts, fiction — words that don't belong to a project yet."},
+    {title:'Resources',sub:'Tools, templates, or free assets released by the studio for others to use.'},
+    {title:'Contact',sub:'Bookings, collaborations, commissions, and general inquiries.'},
+  ],
+};
+
+// ============================================================
+// LOAD CONTENT (merge localStorage overrides)
+// ============================================================
+function loadContent() {
+  const stored = JSON.parse(localStorage.getItem('hf543_content') || '{}');
+  const merged = Object.assign({}, DEFAULT_CONTENT);
+  for (const key in stored) {
+    if (Object.prototype.hasOwnProperty.call(stored, key)) {
+      merged[key] = stored[key];
+    }
+  }
+  return merged;
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderCards(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => {
+    const imgHtml = item.image
+      ? `<img class="card-image" src="${item.image}" alt="${item.title}" loading="lazy"/>`
+      : `<div class="card-image-placeholder">${item.icon || '▪'}</div>`;
+    return `<div class="card">
+      ${imgHtml}
+      <div class="card-num">${item.num || ''}</div>
+      <div class="card-title">${item.title}</div>
+      <div class="card-desc">${item.desc}</div>
+      <a class="card-action" href="${item.link || '#'}">${item.action || 'View'}</a>
+    </div>`;
+  }).join('');
+}
+
+function renderSocialGrid(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => `
+    <a class="social-item" href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon">${item.icon}</span>
+      <div>
+        <span class="social-name">${item.name}</span>
+        <span class="social-handle">${item.handle}</span>
+      </div>
+    </a>
+  `).join('');
+}
+
+function renderWebItems(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => `
+    <div class="web-item">
+      <div class="web-item-info">
+        <div class="web-item-name">${item.name}</div>
+        <div class="web-item-desc">${item.desc}</div>
+        <div class="web-item-year">${item.year}</div>
+      </div>
+      <a class="web-item-link" href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">${item.linkText || 'Visit →'}</a>
+    </div>
+  `).join('');
+}
+
+function renderProjects(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => {
+    const imgHtml = item.image
+      ? `<img class="project-image" src="${item.image}" alt="${item.name}" loading="lazy"/>`
+      : `<div class="project-image-placeholder"></div>`;
+    return `<div class="project-card">
+      ${imgHtml}
+      <span class="project-status ${item.statusClass || 'status-dev'}">${item.status}</span>
+      <div class="project-cat">${item.cat}</div>
+      <div class="project-name">${item.name}</div>
+      <div class="project-desc">${item.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSkills(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => `
+    <div class="skill-item">
+      <div class="skill-title">${item.title}</div>
+      <div class="skill-sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderProfile(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const tagsHtml = (data.tags || []).map(t => `<span class="profile-tag">${t}</span>`).join('');
+  el.innerHTML = `
+    <div class="profile-block">
+      <div class="profile-name">${data.name}</div>
+      <div class="profile-handle">${data.handle}</div>
+      <div class="profile-bio">${data.bio}</div>
+      <div class="profile-tags">${tagsHtml}</div>
+    </div>
+  `;
+}
+
+function renderMerch(panelId, items) {
+  const el = document.getElementById(panelId);
+  if (!el) return;
+  const gridHtml = items.map(item => {
+    const imgHtml = item.image
+      ? `<img class="merch-image" src="${item.image}" alt="${item.name}" loading="lazy"/>`
+      : `<div class="merch-image-placeholder">${item.icon || '🛍️'}</div>`;
+    return `<div class="merch-item">
+      ${imgHtml}
+      <span class="merch-badge ${item.badgeClass || 'badge-soon'}">${item.badge}</span>
+      <div class="merch-cat">${item.cat}</div>
+      <div class="merch-name">${item.name}</div>
+      <div class="merch-desc">${item.desc}</div>
+      <div class="merch-price">${item.price}</div>
+      <button class="merch-btn">${item.btn}</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="merch-grid">${gridHtml}</div>`;
+}
+
+function renderMisc(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = items.map(item => `
+    <div class="misc-item">
+      <div class="misc-title">${item.title}</div>
+      <div class="misc-sub">${item.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderAll(content) {
+  renderCards('music-cards', content.music || []);
+  renderCards('film-cards', content.film || []);
+  renderCards('series-cards', content.series || []);
+  renderCards('illustration-cards', content.illustration || []);
+  renderCards('comics-cards', content.comics || []);
+  renderCards('apps-cards', content.apps || []);
+  renderCards('fashion-cards', content.fashion || []);
+  renderCards('youtube-main-cards', content.youtubeMain || []);
+  renderCards('youtube-gaming-cards', content.youtubeGaming || []);
+  renderCards('youtube-reactions-cards', content.youtubeReactions || []);
+  renderSocialGrid('socials-video', content.socialsVideo || []);
+  renderSocialGrid('socials-messaging', content.socialsMessaging || []);
+  renderSocialGrid('socials-social', content.socialsSocial || []);
+  renderSocialGrid('socials-creative', content.socialsCreative || []);
+  renderWebItems('web-items', content.web || []);
+  renderProjects('project-cards', content.projects || []);
+  renderSkills('skills-grid', content.skills || []);
+  renderProfile('profile-block', content.profile || {});
+  const merch = content.merch || {};
+  renderMerch('merch-apparel', merch.apparel || []);
+  renderMerch('merch-collectibles', merch.collectibles || []);
+  renderMerch('merch-accessories', merch.accessories || []);
+  renderMerch('merch-digital', merch.digital || []);
+  renderMerch('merch-prints', merch.prints || []);
+  renderMisc('misc-items', content.misc || []);
+}
+
+// ============================================================
+// PARTICLES
+// ============================================================
+function initParticles() {
+  const container = document.getElementById('particles');
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.width = (Math.random() * 3 + 1) + 'px';
+    p.style.height = p.style.width;
+    container.appendChild(p);
+  }
+}
+
+// ============================================================
+// BOOT SEQUENCE
+// ============================================================
+const BOOT_MESSAGES = [
+  '> HFACTOR543 STUDIOS OS v2.6.0',
+  '> Initializing core systems...',
+  '> Loading creative modules: MUSIC FILM ART FASHION CODE COMICS',
+  '> Connecting to studio network...',
+  '> Rendering avatar identity: SPIRIT SHADOW // ACTIVE',
+  '> All systems nominal. Studio is live.',
+  '> Welcome. The Factor is in.',
+];
+
+function runBoot() {
+  const log = document.getElementById('boot-log');
+  const progress = document.getElementById('boot-progress');
+  let i = 0;
+
+  function nextLine() {
+    if (i < BOOT_MESSAGES.length) {
+      const line = document.createElement('div');
+      line.className = 'boot-line';
+      line.textContent = BOOT_MESSAGES[i];
+      log.appendChild(line);
+      requestAnimationFrame(() => { line.classList.add('visible'); });
+      progress.style.width = ((i + 1) / BOOT_MESSAGES.length * 100) + '%';
+      i++;
+      setTimeout(nextLine, 380);
+    } else {
+      setTimeout(showMain, 600);
+    }
+  }
+
+  nextLine();
+}
+
+function showMain() {
+  const boot = document.getElementById('boot-screen');
+  boot.style.transition = 'opacity 0.5s';
+  boot.style.opacity = '0';
+  setTimeout(() => {
+    boot.style.display = 'none';
+    document.getElementById('main-page').style.display = 'block';
+    initParticles();
+    const content = loadContent();
+    renderAll(content);
+  }, 500);
+}
+
+// ============================================================
+// HAMBURGER / DRAWER
+// ============================================================
+function openDrawer() { document.body.classList.add('drawer-open'); }
+function closeDrawer() { document.body.classList.remove('drawer-open'); }
+
+document.getElementById('hamburger-btn').addEventListener('click', openDrawer);
+document.getElementById('close-drawer').addEventListener('click', closeDrawer);
+document.getElementById('nav-overlay').addEventListener('click', closeDrawer);
+document.getElementById('bottom-menu-btn').addEventListener('click', openDrawer);
+
+document.querySelectorAll('.drawer-link').forEach(link => {
+  link.addEventListener('click', closeDrawer);
+});
+
+// ============================================================
+// MERCH TABS
+// ============================================================
+document.querySelectorAll('.merch-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.merch-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.merch-panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    const panelId = 'merch-' + this.dataset.tab;
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+// ============================================================
+// CONTACT FORM
+// ============================================================
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+  contacts.push({
+    name: this.name.value,
+    email: this.email.value,
+    subject: this.subject.value,
+    message: this.message.value,
+    date: new Date().toISOString()
+  });
+  localStorage.setItem('hf543_contacts', JSON.stringify(contacts));
+  document.getElementById('contact-success').style.display = 'block';
+  this.reset();
+  setTimeout(() => { document.getElementById('contact-success').style.display = 'none'; }, 5000);
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+
+// ============================================================
+// PWA INSTALL PROMPT
+// ============================================================
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwa-banner').style.display = 'flex';
+});
+document.getElementById('pwa-install-btn').addEventListener('click', () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    document.getElementById('pwa-banner').style.display = 'none';
+    deferredPrompt = null;
+  });
+});
+document.getElementById('pwa-dismiss').addEventListener('click', () => {
+  document.getElementById('pwa-banner').style.display = 'none';
+});
+
+// ============================================================
+// STORAGE EVENT (cross-tab sync)
+// ============================================================
+window.addEventListener('storage', e => {
+  if (e.key === 'hf543_content') {
+    const content = loadContent();
+    renderAll(content);
+  }
+});
+
+// ============================================================
+// START
+// ============================================================
+runBoot();
+</script>
+</body>
+</html>

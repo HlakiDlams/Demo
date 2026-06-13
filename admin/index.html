@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HF543 Admin — Studio CMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #080808;
+  --panel: #161616;
+  --sidebar: #111;
+  --border: #222;
+  --pink: #ff6eb4;
+  --pink-dim: #c44d87;
+  --white: #f0ece4;
+  --muted: #888;
+  --font-logo: 'Orbitron', monospace;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Space Mono', monospace;
+  --font-boot: 'Share Tech Mono', monospace;
+  --green: #00ff64;
+  --yellow: #ffc800;
+  --red: #ff4466;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.6;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   LOGIN SCREEN
+   ============================================================ */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 2.5rem;
+}
+
+.login-logo {
+  font-family: var(--font-logo);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--pink);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.login-sub {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+
+.login-field {
+  margin-bottom: 1rem;
+}
+
+.login-label {
+  display: block;
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 0.7rem 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+.login-input:focus { border-color: var(--pink); }
+
+.login-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: var(--pink);
+  border: none;
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-btn:hover { background: var(--pink-dim); }
+
+.login-error {
+  display: none;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255,68,102,0.1);
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-family: var(--font-boot);
+  font-size: 11px;
+}
+
+/* ============================================================
+   DASHBOARD LAYOUT
+   ============================================================ */
+#dashboard {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: row;
+  height: 100vh;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 1.5rem 1.5rem 1rem;
+  font-family: var(--font-logo);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--pink);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo span {
+  display: block;
+  font-family: var(--font-boot);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+  font-weight: normal;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0.75rem 0;
+  list-style: none;
+}
+
+.sidebar-nav li button {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 0.65rem 1.5rem;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sidebar-nav li button:hover {
+  color: var(--white);
+  background: rgba(255,255,255,0.03);
+}
+
+.sidebar-nav li button.active {
+  color: var(--pink);
+  border-left-color: var(--pink);
+  background: rgba(255,110,180,0.05);
+}
+
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+#logout-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+#logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+/* Main Content */
+#main-content {
+  flex: 1;
+  overflow-y: auto;
+  height: 100vh;
+  background: var(--bg);
+}
+
+.content-header {
+  position: sticky;
+  top: 0;
+  background: rgba(8,8,8,0.95);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.content-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--white);
+  letter-spacing: 0.05em;
+}
+
+.content-body {
+  padding: 2rem;
+}
+
+/* Mobile toggle */
+#mobile-sidebar-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* ============================================================
+   EDITOR COMPONENTS
+   ============================================================ */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.5rem 1.2rem;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-pink { background: var(--pink); color: #000; }
+.btn-pink:hover { background: var(--pink-dim); }
+
+.btn-outline {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.btn-outline:hover { border-color: var(--white); color: var(--white); }
+
+.btn-red { background: rgba(255,68,102,0.1); border: 1px solid var(--red); color: var(--red); }
+.btn-red:hover { background: var(--red); color: #000; }
+
+.btn-green { background: rgba(0,255,100,0.1); border: 1px solid var(--green); color: var(--green); }
+.btn-green:hover { background: var(--green); color: #000; }
+
+.btn-small { padding: 0.3rem 0.7rem; font-size: 10px; }
+
+/* Card List */
+.item-list {
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.item-row:last-child { border-bottom: none; }
+.item-row:hover { background: rgba(255,255,255,0.02); }
+
+.item-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+.item-info { flex: 1; min-width: 0; }
+
+.item-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-meta {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--font-boot);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+/* Edit Form */
+.edit-form {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.edit-form-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--pink);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+.form-full { grid-column: 1 / -1; }
+
+.f-group { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.f-label {
+  font-family: var(--font-boot);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.f-input,
+.f-select,
+.f-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 0.6rem 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  -webkit-appearance: none;
+}
+
+.f-input:focus,
+.f-select:focus,
+.f-textarea:focus { border-color: var(--pink); }
+
+.f-select { cursor: pointer; }
+
+.f-textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-size: 11px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+/* Sub-tabs */
+.sub-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sub-tabs::-webkit-scrollbar { display: none; }
+
+.sub-tab {
+  flex-shrink: 0;
+  padding: 0.6rem 1.2rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.sub-tab:hover { color: var(--white); }
+.sub-tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+
+/* Contacts list */
+.contact-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.contact-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.contact-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--white);
+}
+
+.contact-date {
+  font-family: var(--font-boot);
+  font-size: 9px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.contact-email,
+.contact-subject {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+  font-family: var(--font-boot);
+}
+
+.contact-message {
+  font-size: 12px;
+  color: var(--white);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  line-height: 1.6;
+}
+
+/* Settings */
+.settings-section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.settings-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--pink);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row { margin-bottom: 0.75rem; }
+
+/* Alert / notice */
+.notice {
+  padding: 0.75rem 1rem;
+  font-family: var(--font-boot);
+  font-size: 11px;
+  margin-bottom: 1rem;
+}
+
+.notice-success { background: rgba(0,255,100,0.1); border: 1px solid var(--green); color: var(--green); }
+.notice-error { background: rgba(255,68,102,0.1); border: 1px solid var(--red); color: var(--red); }
+.notice-info { background: rgba(255,110,180,0.1); border: 1px solid var(--pink); color: var(--pink); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+  font-family: var(--font-boot);
+  font-size: 12px;
+  border: 1px dashed var(--border);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  body { overflow: auto; }
+
+  #dashboard { flex-direction: column; overflow: auto; height: auto; }
+
+  #sidebar {
+    width: 100%;
+    min-width: unset;
+    height: auto;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #sidebar.open { max-height: 600px; }
+
+  #main-content { height: auto; overflow: visible; }
+
+  #mobile-sidebar-toggle { display: block; }
+
+  .content-header { padding: 1rem 1.25rem; }
+  .content-body { padding: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">HF543</div>
+    <div class="login-sub">Studio CMS · Admin Access</div>
+    <div class="login-field">
+      <label class="login-label" for="login-id">Admin ID</label>
+      <input class="login-input" type="text" id="login-id" autocomplete="username" placeholder="Enter admin ID"/>
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="login-pw">Password</label>
+      <input class="login-input" type="password" id="login-pw" autocomplete="current-password" placeholder="Enter password"/>
+    </div>
+    <button class="login-btn" id="login-btn">Login →</button>
+    <div class="login-error" id="login-error">Invalid credentials. Try again.</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DASHBOARD
+     ============================================================ -->
+<div id="dashboard">
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      HF543 ADMIN
+      <span>Studio Content Management</span>
+    </div>
+    <ul class="sidebar-nav" id="sidebar-nav">
+      <li><button data-section="music" class="active"><span>🎵</span> Music</button></li>
+      <li><button data-section="film"><span>🎬</span> Film</button></li>
+      <li><button data-section="series"><span>📺</span> Series</button></li>
+      <li><button data-section="illustration"><span>🖼️</span> Illustration</button></li>
+      <li><button data-section="comics"><span>📖</span> Comics</button></li>
+      <li><button data-section="apps"><span>📱</span> Apps</button></li>
+      <li><button data-section="fashion"><span>🖤</span> Fashion</button></li>
+      <li><button data-section="youtube"><span>▶️</span> YouTube</button></li>
+      <li><button data-section="socials"><span>🌐</span> Socials</button></li>
+      <li><button data-section="web"><span>💻</span> Web Projects</button></li>
+      <li><button data-section="projects"><span>🏗️</span> Projects</button></li>
+      <li><button data-section="profile"><span>🎭</span> Profile</button></li>
+      <li><button data-section="merch"><span>🛍️</span> Merch</button></li>
+      <li><button data-section="misc"><span>⚡</span> Misc</button></li>
+      <li><button data-section="contacts"><span>📬</span> Contacts</button></li>
+      <li><button data-section="settings"><span>⚙️</span> Settings</button></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button id="logout-btn">⏻ Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <div class="content-header">
+      <div class="content-title" id="content-title">Music</div>
+      <button id="mobile-sidebar-toggle">☰ Menu</button>
+    </div>
+    <div class="content-body" id="content-body">
+      <!-- Rendered by JS -->
+    </div>
+  </main>
+
+</div><!-- end #dashboard -->
+
+<script>
+// ============================================================
+// SHA-256 VIA WEB CRYPTO
+// ============================================================
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ============================================================
+// DEFAULT CONTENT (mirrors main site)
+// ============================================================
+const DEFAULT_CONTENT = {
+  music: [
+    {icon:'🎵',num:'001',title:'Track Title Here',desc:'Genre · Year · Short description of the track or project.',action:'Listen',link:'#',image:''},
+    {icon:'🎧',num:'002',title:'Another Release',desc:'Add your music releases, EPs, singles, or soundscapes here.',action:'Listen',link:'#',image:''},
+    {icon:'🎼',num:'—',title:'More Coming',desc:'Slots for future releases. The discography grows.',action:'Stay Tuned',link:'#',image:''},
+  ],
+  film: [
+    {icon:'🎬',num:'001',title:'Film Title Here',desc:'Genre · Runtime · A short synopsis of the film goes here.',action:'Watch',link:'#',image:''},
+    {icon:'📽️',num:'—',title:'In Development',desc:'Short films in pre-production. Details to be announced.',action:'Coming Soon',link:'#',image:''},
+  ],
+  series: [
+    {icon:'📺',num:'S01',title:'Series Title',desc:'Episodes · Genre · A brief series logline or pitch goes here.',action:'Watch',link:'#',image:''},
+    {icon:'🎞️',num:'—',title:'New Season TBA',desc:'More serialised storytelling is in the works.',action:'Follow',link:'#',image:''},
+  ],
+  illustration: [
+    {icon:'🖼️',num:'001',title:'Piece Title',desc:'Medium · Year · Description or series name for this piece.',action:'View',link:'#',image:''},
+    {icon:'✏️',num:'002',title:'Digital Collage',desc:'Layered digital compositions — aesthetic and narrative-driven.',action:'View',link:'#',image:''},
+    {icon:'🎨',num:'—',title:'Gallery Grows',desc:'New pieces added as the studio produces them.',action:'Explore',link:'#',image:''},
+  ],
+  comics: [
+    {icon:'📖',num:'VOL 01',title:'Comic Title',desc:'Issues · Genre · A short summary of the story and world.',action:'Read',link:'#',image:''},
+    {icon:'🗂️',num:'—',title:'New Arc TBA',desc:'Next story arc in the works. Characters, worlds, and lore incoming.',action:'Preview',link:'#',image:''},
+  ],
+  apps: [
+    {icon:'📱',num:'APP 01',title:'App Name',desc:'Platform · Category · Brief description of what the app does.',action:'Download',link:'#',image:''},
+    {icon:'💻',num:'—',title:'In Development',desc:'Apps currently being built at HFactor543 Studios.',action:'Watch Space',link:'#',image:''},
+  ],
+  fashion: [
+    {icon:'🖤',num:'LOOK 01',title:'Look / Outfit Title',desc:'Season · Aesthetic direction · Notes on the pieces, inspiration, or styling choices.',action:'View Look',link:'#',image:''},
+    {icon:'🎀',num:'CONCEPT',title:'Design Concept',desc:'Original garment or concept designs — sketches, mood boards, fabric choices.',action:'Explore',link:'#',image:''},
+    {icon:'🧵',num:'EDIT 01',title:'Curated Edit',desc:'Curated collections and style edits — thematic, seasonal, or identity-driven.',action:'Browse',link:'#',image:''},
+    {icon:'📸',num:'SHOOT',title:'Editorial Shoot',desc:'Photography and visual direction for fashion — self-styled or collaborative.',action:'View',link:'#',image:''},
+  ],
+  youtubeMain: [
+    {icon:'▶️',num:'MAIN',title:'HFactor543 Studios',desc:'Main channel — all studio output. Creative content, releases, series, and everything in between.',action:'Subscribe',link:'#',image:''},
+    {icon:'🎬',num:'LATEST',title:'Latest Upload',desc:'Most recent video — update this whenever something drops.',action:'Watch Now',link:'#',image:''},
+    {icon:'📌',num:'PLAYLISTS',title:'Organised by Series',desc:'Playlists by theme, series, or content type — making the archive navigable.',action:'Browse',link:'#',image:''},
+    {icon:'⚡',num:'SHORTS',title:'Shorts & Clips',desc:'Short-form drops, highlights, and quick content from across the studio.',action:'View',link:'#',image:''},
+  ],
+  youtubeGaming: [
+    {icon:'🎮',num:'GAME 01',title:'The Sims 4',desc:"Gameplay, mods, storytelling, and custom builds. The studio's signature game content.",action:'Watch',link:'#',image:''},
+    {icon:'⛏️',num:'GAME 02',title:'Minecraft',desc:'Builds, survival worlds, and creative mode projects — documented on channel.',action:'Watch',link:'#',image:''},
+    {icon:'🏆',num:'GAME 03',title:'Fortnite',desc:'Highlights, clips, and gameplay moments — casual and competitive.',action:'Watch',link:'#',image:''},
+    {icon:'🌐',num:'GAME 04',title:'Roblox',desc:'Game exploration, community play, and Roblox content from the studio.',action:'Watch',link:'#',image:''},
+  ],
+  youtubeReactions: [
+    {icon:'😱',num:'REACT 01',title:'Music Reactions',desc:'First listens, deep dives, and unfiltered takes on albums, singles, and drops.',action:'Watch',link:'#',image:''},
+    {icon:'🎥',num:'REACT 02',title:'Film & Show Reactions',desc:'Real-time reactions to trailers, films, and series moments worth watching.',action:'Watch',link:'#',image:''},
+    {icon:'🔥',num:'REACT 03',title:'Viral Content',desc:'Reacting to what the internet cannot stop talking about — trends, moments, madness.',action:'Watch',link:'#',image:''},
+    {icon:'💬',num:'REACT 04',title:'Commentary',desc:'Longer form opinion content — thoughts, takes, and conversations that matter.',action:'Watch',link:'#',image:''},
+  ],
+  socialsVideo: [
+    {icon:'▶️',name:'YouTube',handle:'@HFactor543Studios',url:'#'},
+    {icon:'🟣',name:'Twitch',handle:'Link coming',url:'https://www.twitch.tv/'},
+  ],
+  socialsMessaging: [
+    {icon:'✈️',name:'Telegram',handle:'Channel + Chatbot',url:'#'},
+    {icon:'💬',name:'WhatsApp',handle:'Channel',url:'#'},
+    {icon:'🎮',name:'Discord',handle:'Studio Server',url:'#'},
+  ],
+  socialsSocial: [
+    {icon:'📸',name:'Instagram',handle:'Link coming',url:'#'},
+    {icon:'🧵',name:'Threads',handle:'Link coming',url:'#'},
+    {icon:'🌐',name:'Facebook',handle:'Link coming',url:'#'},
+    {icon:'🐦',name:'X / Twitter',handle:'Link coming',url:'#'},
+    {icon:'🎵',name:'TikTok',handle:'Link coming',url:'#'},
+    {icon:'📌',name:'Pinterest',handle:'Link coming',url:'#'},
+  ],
+  socialsCreative: [
+    {icon:'📖',name:'Wattpad',handle:'Stories & Scripts',url:'#'},
+    {icon:'🔮',name:'Luna AI',handle:'poe.com/Luna_Apollo_AI',url:'https://poe.com/Luna_Apollo_AI'},
+    {icon:'💼',name:'LinkedIn',handle:'Link coming',url:'#'},
+    {icon:'🐙',name:'GitHub',handle:'Code & Projects',url:'#'},
+  ],
+  web: [
+    {name:'Project Name',desc:'Short description of the site or web tool.',year:'2025',url:'#',linkText:'Visit →'},
+    {name:'Another Site',desc:'Built for X purpose. Stack or tools used.',year:'2025',url:'#',linkText:'Visit →'},
+    {name:'Luna AI',desc:'Avatar AI assistant — WIP draft on Poe. Will go independent.',year:'2026',url:'https://poe.com/Luna_Apollo_AI',linkText:'Visit →'},
+    {name:'HF543 Studios Site',desc:'HFactor543 Studios official web presence.',year:'2026',url:'#',linkText:"You're here →"},
+  ],
+  projects: [
+    {status:'Active',statusClass:'status-active',cat:'Branding / Design',name:'Luna AI',desc:'Logo design and brand identity — black and baby pink palette. A clean, stylized identity for an AI persona.',image:''},
+    {status:'Complete',statusClass:'status-complete',cat:'Branding / YouTube',name:'HF543 Banner',desc:'YouTube channel banner and full branding package for HFactor543 Studios digital presence.',image:''},
+    {status:'In Dev',statusClass:'status-dev',cat:'Engineering / Construction',name:'Build Practice 01',desc:"Technical exercise — structural, mechanical, or design engineering. Document what you built, what you learned, and what you'd do differently.",image:''},
+    {status:'Planned',statusClass:'status-dev',cat:'Engineering / Technical',name:'Next Challenge',desc:'Slot for the next engineering or constructive skills exercise. Drop specs, sketches, or outcomes here as you go.',image:''},
+  ],
+  skills: [
+    {title:'Structural Design',sub:'Load-bearing logic, material properties, basic construction principles.'},
+    {title:'Technical Drawing',sub:'Blueprints, schematics, EGD-style technical illustration and annotation.'},
+    {title:'Digital Fabrication',sub:'CAD tools, digital modelling, prototyping concepts and workflows.'},
+    {title:'Systems Thinking',sub:'How parts connect into wholes — across engineering, code, and design.'},
+  ],
+  profile: {
+    name:'HFactor543',
+    handle:'@HFactor543Studios · Avatar-Run Creative Studio',
+    bio:'HFactor543 Studios is a creative entity operating through an avatar. Music. Film. Art. Fashion. Code. Comics. Gaming. — All under one roof, all built by a single unseen force.\n\nThe Factor stands on its own. The studio speaks for itself.',
+    tags:['Director','Illustrator','Composer','Developer','Writer','Designer','Storyteller','South Africa'],
+  },
+  merch: {
+    apparel: [
+      {icon:'🖤',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Spirit Shadow Hoodie',desc:'Oversized black hoodie. Pink neon HF543 logo on back, Spirit Shadow text on chest. Premium heavyweight fabric.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'👕',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'HF543 Graphic Tee',desc:'Black tee with HFactor543 Studios front print. Pink accent lettering, studio logo on sleeve.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'👟',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Platform Sneaker Collab',desc:"Inspired by HFactor543's signature kicks. Black/white build with pink glow sole detail. Limited run.",price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎀',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Apparel',name:'Spirit Shadow Jacket',desc:"Black and white utility jacket. Inspired by HFactor543's signature techwear fit. Pink accent zippers.",price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    collectibles: [
+      {icon:'🧸',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'HFactor543 Plushie',desc:'Soft plush figure of Spirit Shadow. Black bow, pink lollipop, full outfit detail. Collectible series.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🗿',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'Spirit Shadow Action Figure',desc:'Articulated action figure. Includes bladed fan prop, ribbon pouch detail, deployable accessories.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🖨️',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Collectibles',name:'3D Printed Model · HF543',desc:'High-detail 3D printed figurine. Full character in signature stance. Hand-painted limited edition.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    accessories: [
+      {icon:'🔑',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'HF543 Keychain',desc:'Metal keychain. HFactor543 logo with pink enamel fill. Comes in black and silver finish.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎀',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'Spirit Shadow Hair Bow',desc:"Oversized black satin bow. Replica of HFactor543's signature piece. One size fits all.",price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎒',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'HF543 Tote Bag',desc:'Black canvas tote. Pink studio logo print. Utility meets aesthetic — everyday carry.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📿',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Accessories',name:'Spirit Shadow Choker',desc:"Black choker with pink center crystal. Replica of HFactor543's signature accessory piece.",price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    digital: [
+      {icon:'🖼️',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'Spirit Shadow Wallpaper Pack',desc:'4K wallpapers featuring HFactor543 in cinematic poses. Desktop and mobile versions. Instant download.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🎨',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'HF543 Sticker Pack',desc:'Digital sticker set. Expressions, accessories, logo marks. Compatible with WhatsApp, Telegram, iMessage.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📱',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'HF543 App',desc:'Studio companion app. Content hub, exclusive drops, avatar interaction, studio updates. Coming to Android + iOS.',price:'Free / Premium TBD',btn:'Notify Me',image:''},
+      {icon:'🎵',badge:'Digital',badgeClass:'badge-digital',cat:'Digital',name:'Sound Pack · Spirit Shadow',desc:'HF543 original audio — notification sounds, ringtones, ambient studio tracks. Instant download.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+    prints: [
+      {icon:'🖼️',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Spirit Shadow Poster · A2',desc:'Full character art print. HFactor543 in signature pose with Spirit Shadow backdrop. Museum quality paper.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📋',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Character Sheet Print',desc:'The official HF543 character reference sheet as a collectible art print. Front/Side/Back views, face sheet, full specs.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'🌸',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'Spirit Bloom Art Print',desc:'Signature move captured as art. HF543 mid Spirit Bloom — fan open, neon flower aura expanding. Limited edition.',price:'Price TBD',btn:'Notify Me',image:''},
+      {icon:'📓',badge:'Coming Soon',badgeClass:'badge-soon',cat:'Prints',name:'HF543 Zine · Vol. 01',desc:'First studio zine. Art, lore, behind the scenes, character breakdowns. Physical collectible print run.',price:'Price TBD',btn:'Notify Me',image:''},
+    ],
+  },
+  misc: [
+    {title:'Experiments',sub:"Creative tests, concepts that didn't fit a box. Loose work and wild ideas."},
+    {title:'Collabs',sub:'Joint work with other creatives. Guest appearances, features, and partnerships.'},
+    {title:'Archive',sub:"Older work. Early pieces. The beginning of the studio's story."},
+    {title:'Writings',sub:"Essays, notes, scripts, fiction — words that don't belong to a project yet."},
+    {title:'Resources',sub:'Tools, templates, or free assets released by the studio for others to use.'},
+    {title:'Contact',sub:'Bookings, collaborations, commissions, and general inquiries.'},
+  ],
+};
+
+// ============================================================
+// CONTENT HELPERS
+// ============================================================
+function getSiteContent() {
+  const stored = JSON.parse(localStorage.getItem('hf543_content') || '{}');
+  const merged = JSON.parse(JSON.stringify(DEFAULT_CONTENT));
+  for (const key in stored) {
+    if (Object.prototype.hasOwnProperty.call(stored, key)) {
+      merged[key] = stored[key];
+    }
+  }
+  return merged;
+}
+
+function saveSiteContent(content) {
+  localStorage.setItem('hf543_content', JSON.stringify(content));
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+const DEFAULT_ADMIN_ID = 'HF543';
+const DEFAULT_ADMIN_PASS = 'SpiritShadow2026';
+
+async function initAdmin() {
+  if (!localStorage.getItem('hf543_admin')) {
+    const hash = await sha256(DEFAULT_ADMIN_PASS);
+    localStorage.setItem('hf543_admin', JSON.stringify({id: DEFAULT_ADMIN_ID, passwordHash: hash}));
+  }
+}
+
+async function attemptLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  const stored = JSON.parse(localStorage.getItem('hf543_admin') || '{}');
+  const hash = await sha256(pw);
+
+  if (id === stored.id && hash === stored.passwordHash) {
+    sessionStorage.setItem('hf543_session', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    showSection('music');
+  } else {
+    errEl.style.display = 'block';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('hf543_session');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
+}
+
+// ============================================================
+// SECTION NAVIGATION
+// ============================================================
+let currentSection = 'music';
+
+const SECTION_TITLES = {
+  music: 'Music',
+  film: 'Film',
+  series: 'Series',
+  illustration: 'Illustration',
+  comics: 'Comics',
+  apps: 'Apps',
+  fashion: 'Fashion',
+  youtube: 'YouTube',
+  socials: 'Socials',
+  web: 'Web Projects',
+  projects: 'Projects',
+  profile: 'Profile',
+  merch: 'Merch',
+  misc: 'Misc',
+  contacts: 'Contacts',
+  settings: 'Settings',
+};
+
+function showSection(name) {
+  currentSection = name;
+  document.getElementById('content-title').textContent = SECTION_TITLES[name] || name;
+  document.querySelectorAll('#sidebar-nav button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.section === name);
+  });
+  renderSection(name);
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function renderSection(name) {
+  const body = document.getElementById('content-body');
+  const content = getSiteContent();
+  switch (name) {
+    case 'music': renderCardEditor(body, content, 'music', ['icon','num','title','desc','action','link','image']); break;
+    case 'film': renderCardEditor(body, content, 'film', ['icon','num','title','desc','action','link','image']); break;
+    case 'series': renderCardEditor(body, content, 'series', ['icon','num','title','desc','action','link','image']); break;
+    case 'illustration': renderCardEditor(body, content, 'illustration', ['icon','num','title','desc','action','link','image']); break;
+    case 'comics': renderCardEditor(body, content, 'comics', ['icon','num','title','desc','action','link','image']); break;
+    case 'apps': renderCardEditor(body, content, 'apps', ['icon','num','title','desc','action','link','image']); break;
+    case 'fashion': renderCardEditor(body, content, 'fashion', ['icon','num','title','desc','action','link','image']); break;
+    case 'youtube': renderYoutubeEditor(body, content); break;
+    case 'socials': renderSocialsEditor(body, content); break;
+    case 'web': renderWebEditor(body, content); break;
+    case 'projects': renderProjectsEditor(body, content); break;
+    case 'profile': renderProfileEditor(body, content); break;
+    case 'merch': renderMerchEditor(body, content); break;
+    case 'misc': renderMiscEditor(body, content); break;
+    case 'contacts': renderContactsSection(body); break;
+    case 'settings': renderSettings(body); break;
+    default: body.innerHTML = '<div class="empty-state">Section not found.</div>';
+  }
+}
+
+// ============================================================
+// GENERIC CARD EDITOR
+// ============================================================
+const FIELD_LABELS = {
+  icon: 'Icon (emoji)',
+  num: 'Number / Code',
+  title: 'Title',
+  desc: 'Description',
+  action: 'Action Text',
+  link: 'Link URL',
+  image: 'Image URL',
+  name: 'Name',
+  handle: 'Handle',
+  url: 'URL',
+  year: 'Year',
+  linkText: 'Link Text',
+  status: 'Status',
+  statusClass: 'Status Class',
+  cat: 'Category',
+  badge: 'Badge Text',
+  badgeClass: 'Badge Class',
+  price: 'Price',
+  btn: 'Button Text',
+};
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderCardEditor(container, content, key, fields, subLabel) {
+  const items = content[key] || [];
+  let editIdx = null;
+
+  function render(editingIdx) {
+    editIdx = editingIdx;
+    const editForm = editingIdx !== null ? renderEditForm(items[editingIdx], fields, editingIdx) : '';
+    container.innerHTML = `
+      <div class="editor-toolbar">
+        <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);">${items.length} item${items.length !== 1 ? 's' : ''}</div>
+        <button class="btn btn-pink" id="add-new-btn">+ Add New</button>
+      </div>
+      ${editIdx === -1 ? renderEditForm({}, fields, -1) : ''}
+      <div class="item-list" id="card-list">
+        ${items.map((item, i) => `
+          <div class="item-row" data-idx="${i}">
+            <div class="item-icon">${esc(item.icon || item.name?.[0] || '▪')}</div>
+            <div class="item-info">
+              <div class="item-name">${esc(item.title || item.name || '(untitled)')}</div>
+              <div class="item-meta">${esc(item.num || item.handle || item.year || item.status || '')}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-outline btn-small edit-btn" data-idx="${i}">Edit</button>
+              <button class="btn btn-red btn-small delete-btn" data-idx="${i}">Del</button>
+            </div>
+          </div>
+          ${editIdx === i ? renderEditForm(item, fields, i) : ''}
+        `).join('')}
+        ${items.length === 0 ? '<div class="empty-state">No items yet. Add one above.</div>' : ''}
+      </div>
+    `;
+    bindCardEditorEvents(container, content, key, fields, render);
+  }
+
+  render(null);
+}
+
+function renderEditForm(item, fields, idx) {
+  const isNew = idx === -1;
+  const specialSelects = {
+    statusClass: ['status-active','status-complete','status-dev'],
+    badgeClass: ['badge-soon','badge-digital','badge-new'],
+    status: ['Active','In Dev','Complete','Planned'],
+  };
+  const fieldsHtml = fields.map(f => {
+    const val = esc(item[f] || '');
+    const label = FIELD_LABELS[f] || f;
+    let input;
+    if (specialSelects[f]) {
+      const opts = specialSelects[f].map(o => `<option value="${o}" ${(item[f] === o) ? 'selected' : ''}>${o}</option>`).join('');
+      input = `<select class="f-select" name="${f}">${opts}</select>`;
+    } else if (f === 'desc' || f === 'bio') {
+      input = `<textarea class="f-textarea" name="${f}">${val}</textarea>`;
+    } else {
+      input = `<input class="f-input" type="text" name="${f}" value="${val}"/>`;
+    }
+    const isWide = (f === 'desc' || f === 'image' || f === 'link' || f === 'url');
+    return `<div class="f-group ${isWide ? 'form-full' : ''}">
+      <label class="f-label">${esc(label)}</label>
+      ${input}
+    </div>`;
+  }).join('');
+
+  return `<div class="edit-form" id="edit-form-${idx}">
+    <div class="edit-form-title">${isNew ? 'New Item' : 'Edit Item'}</div>
+    <form class="form-grid card-form" data-idx="${idx}">
+      ${fieldsHtml}
+      <div class="form-actions form-full">
+        <button type="submit" class="btn btn-pink">Save</button>
+        <button type="button" class="btn btn-outline cancel-edit-btn">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+}
+
+function bindCardEditorEvents(container, content, key, fields, render) {
+  container.querySelector('#add-new-btn').addEventListener('click', () => render(-1));
+
+  container.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      render(idx);
+      // scroll to form
+      const form = container.querySelector(`#edit-form-${idx}`);
+      if (form) form.scrollIntoView({behavior:'smooth', block:'nearest'});
+    });
+  });
+
+  container.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      if (!confirm('Delete this item?')) return;
+      const items = content[key];
+      items.splice(idx, 1);
+      saveSiteContent(content);
+      render(null);
+    });
+  });
+
+  container.querySelectorAll('.card-form').forEach(form => {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const idx = parseInt(form.dataset.idx);
+      const newItem = {};
+      fields.forEach(f => {
+        const el = form.querySelector(`[name="${f}"]`);
+        if (el) newItem[f] = el.value;
+      });
+      if (idx === -1) {
+        content[key].push(newItem);
+      } else {
+        content[key][idx] = newItem;
+      }
+      saveSiteContent(content);
+      render(null);
+    });
+  });
+
+  container.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => render(null));
+  });
+}
+
+// ============================================================
+// YOUTUBE EDITOR
+// ============================================================
+function renderYoutubeEditor(container, content) {
+  const tabs = [
+    {key:'youtubeMain', label:'Main Channel'},
+    {key:'youtubeGaming', label:'Gaming'},
+    {key:'youtubeReactions', label:'Reactions'},
+  ];
+  let activeTab = 0;
+
+  function render(tabIdx) {
+    activeTab = tabIdx;
+    container.innerHTML = `
+      <div class="sub-tabs">
+        ${tabs.map((t,i) => `<button class="sub-tab ${i===activeTab?'active':''}" data-tab="${i}">${t.label}</button>`).join('')}
+      </div>
+      <div id="yt-tab-content"></div>
+    `;
+    container.querySelectorAll('.sub-tab').forEach(btn => {
+      btn.addEventListener('click', () => render(parseInt(btn.dataset.tab)));
+    });
+    const sub = document.getElementById('yt-tab-content');
+    renderCardEditor(sub, content, tabs[activeTab].key, ['icon','num','title','desc','action','link','image']);
+  }
+  render(0);
+}
+
+// ============================================================
+// SOCIALS EDITOR
+// ============================================================
+function renderSocialsEditor(container, content) {
+  const tabs = [
+    {key:'socialsVideo', label:'Video & Live'},
+    {key:'socialsMessaging', label:'Messaging & Community'},
+    {key:'socialsSocial', label:'Social Media'},
+    {key:'socialsCreative', label:'Creative & Writing'},
+  ];
+  let activeTab = 0;
+
+  function render(tabIdx) {
+    activeTab = tabIdx;
+    container.innerHTML = `
+      <div class="sub-tabs">
+        ${tabs.map((t,i) => `<button class="sub-tab ${i===activeTab?'active':''}" data-tab="${i}">${t.label}</button>`).join('')}
+      </div>
+      <div id="socials-tab-content"></div>
+    `;
+    container.querySelectorAll('.sub-tab').forEach(btn => {
+      btn.addEventListener('click', () => render(parseInt(btn.dataset.tab)));
+    });
+    const sub = document.getElementById('socials-tab-content');
+    renderCardEditor(sub, content, tabs[activeTab].key, ['icon','name','handle','url']);
+  }
+  render(0);
+}
+
+// ============================================================
+// WEB PROJECTS EDITOR
+// ============================================================
+function renderWebEditor(container, content) {
+  renderCardEditor(container, content, 'web', ['name','desc','year','url','linkText']);
+}
+
+// ============================================================
+// PROJECTS EDITOR
+// ============================================================
+function renderProjectsEditor(container, content) {
+  // Projects card editor
+  const projectsDiv = document.createElement('div');
+  container.innerHTML = `
+    <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);margin-bottom:1rem;letter-spacing:0.1em;text-transform:uppercase;">Projects</div>
+    <div id="projects-editor"></div>
+    <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);margin:1.5rem 0 0.5rem;letter-spacing:0.1em;text-transform:uppercase;padding-top:1rem;border-top:1px solid var(--border);">Skills</div>
+    <div id="skills-editor"></div>
+  `;
+  renderCardEditor(document.getElementById('projects-editor'), content, 'projects', ['status','statusClass','cat','name','desc','image']);
+  renderCardEditor(document.getElementById('skills-editor'), content, 'skills', ['title','sub']);
+}
+
+// ============================================================
+// PROFILE EDITOR
+// ============================================================
+function renderProfileEditor(container, content) {
+  const p = content.profile || {};
+  container.innerHTML = `
+    <div class="edit-form">
+      <div class="edit-form-title">Edit Profile</div>
+      <form id="profile-form" class="form-grid">
+        <div class="f-group">
+          <label class="f-label">Name</label>
+          <input class="f-input" type="text" name="name" value="${esc(p.name || '')}"/>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Handle</label>
+          <input class="f-input" type="text" name="handle" value="${esc(p.handle || '')}"/>
+        </div>
+        <div class="f-group form-full">
+          <label class="f-label">Bio</label>
+          <textarea class="f-textarea" name="bio" style="min-height:120px;">${esc(p.bio || '')}</textarea>
+        </div>
+        <div class="f-group form-full">
+          <label class="f-label">Tags (comma-separated)</label>
+          <input class="f-input" type="text" name="tags" value="${esc((p.tags || []).join(', '))}"/>
+        </div>
+        <div class="form-actions form-full">
+          <button type="submit" class="btn btn-pink">Save Profile</button>
+        </div>
+      </form>
+      <div id="profile-save-msg" class="notice notice-success" style="display:none;margin-top:1rem;">Profile saved.</div>
+    </div>
+  `;
+  document.getElementById('profile-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target;
+    content.profile = {
+      name: form.name.value,
+      handle: form.handle.value,
+      bio: form.bio.value,
+      tags: form.tags.value.split(',').map(t => t.trim()).filter(Boolean),
+    };
+    saveSiteContent(content);
+    document.getElementById('profile-save-msg').style.display = 'block';
+    setTimeout(() => { document.getElementById('profile-save-msg').style.display = 'none'; }, 3000);
+  });
+}
+
+// ============================================================
+// MERCH EDITOR
+// ============================================================
+function renderMerchEditor(container, content) {
+  const cats = ['apparel','collectibles','accessories','digital','prints'];
+  const catLabels = {
+    apparel: 'Apparel',
+    collectibles: 'Collectibles',
+    accessories: 'Accessories',
+    digital: 'Digital',
+    prints: 'Prints',
+  };
+  let activeTab = 0;
+
+  function render(tabIdx) {
+    activeTab = tabIdx;
+    const key = cats[activeTab];
+    container.innerHTML = `
+      <div class="sub-tabs">
+        ${cats.map((c,i) => `<button class="sub-tab ${i===activeTab?'active':''}" data-tab="${i}">${catLabels[c]}</button>`).join('')}
+      </div>
+      <div id="merch-tab-content"></div>
+    `;
+    container.querySelectorAll('.sub-tab').forEach(btn => {
+      btn.addEventListener('click', () => render(parseInt(btn.dataset.tab)));
+    });
+
+    // Wrap merch sub-array for the generic editor
+    const proxy = new Proxy(content, {
+      get(target, prop) {
+        if (prop === key) return target.merch[key];
+        return target[prop];
+      },
+      set(target, prop, value) {
+        if (prop === key) { target.merch[key] = value; return true; }
+        target[prop] = value;
+        return true;
+      }
+    });
+
+    const sub = document.getElementById('merch-tab-content');
+    renderCardEditor(sub, proxy, key, ['icon','badge','badgeClass','cat','name','desc','price','btn','image']);
+  }
+  render(0);
+}
+
+// ============================================================
+// MISC EDITOR
+// ============================================================
+function renderMiscEditor(container, content) {
+  renderCardEditor(container, content, 'misc', ['title','sub']);
+}
+
+// ============================================================
+// CONTACTS
+// ============================================================
+function renderContactsSection(container) {
+  const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+
+  function render() {
+    const c2 = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+    container.innerHTML = `
+      <div class="editor-toolbar">
+        <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);">${c2.length} submission${c2.length !== 1 ? 's' : ''}</div>
+        ${c2.length > 0 ? '<button class="btn btn-red" id="clear-contacts-btn">Clear All</button>' : ''}
+      </div>
+      ${c2.length === 0
+        ? '<div class="empty-state">No contact submissions yet.</div>'
+        : c2.slice().reverse().map((c, i) => `
+            <div class="contact-card">
+              <div class="contact-header">
+                <div class="contact-name">${esc(c.name)}</div>
+                <div class="contact-date">${new Date(c.date).toLocaleString()}</div>
+              </div>
+              <div class="contact-email">📧 ${esc(c.email)}</div>
+              <div class="contact-subject">📌 ${esc(c.subject)}</div>
+              <div class="contact-message">${esc(c.message)}</div>
+            </div>
+          `).join('')
+      }
+    `;
+    const clearBtn = container.querySelector('#clear-contacts-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (!confirm('Clear all contact submissions? This cannot be undone.')) return;
+        localStorage.removeItem('hf543_contacts');
+        render();
+      });
+    }
+  }
+
+  render();
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings(container) {
+  container.innerHTML = `
+    <div class="settings-section">
+      <div class="settings-title">Change Credentials</div>
+      <div class="settings-row">
+        <div class="f-group" style="max-width:320px;">
+          <label class="f-label">Admin ID</label>
+          <input class="f-input" type="text" id="new-admin-id" placeholder="New admin ID"/>
+        </div>
+      </div>
+      <div class="settings-row" style="margin-top:0.75rem;">
+        <div class="f-group" style="max-width:320px;">
+          <label class="f-label">New Password</label>
+          <input class="f-input" type="password" id="new-admin-pw" placeholder="New password"/>
+        </div>
+      </div>
+      <div class="settings-row" style="margin-top:0.75rem;">
+        <div class="f-group" style="max-width:320px;">
+          <label class="f-label">Confirm Password</label>
+          <input class="f-input" type="password" id="confirm-admin-pw" placeholder="Confirm new password"/>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <button class="btn btn-pink" id="save-creds-btn">Save Credentials</button>
+      </div>
+      <div id="creds-msg" class="notice" style="display:none;margin-top:0.75rem;max-width:400px;"></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">Content Management</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+        <button class="btn btn-outline" id="export-btn">⬇ Export Content JSON</button>
+        <label class="btn btn-outline" style="cursor:pointer;">
+          ⬆ Import Content JSON
+          <input type="file" id="import-file" accept=".json" style="display:none;"/>
+        </label>
+        <button class="btn btn-red" id="reset-btn">↺ Reset to Defaults</button>
+      </div>
+      <div id="content-msg" class="notice" style="display:none;margin-top:0.75rem;max-width:400px;"></div>
+    </div>
+  `;
+
+  // Save credentials
+  document.getElementById('save-creds-btn').addEventListener('click', async () => {
+    const newId = document.getElementById('new-admin-id').value.trim();
+    const newPw = document.getElementById('new-admin-pw').value;
+    const confirmPw = document.getElementById('confirm-admin-pw').value;
+    const msg = document.getElementById('creds-msg');
+
+    if (!newId && !newPw) {
+      msg.className = 'notice notice-error';
+      msg.textContent = 'Enter a new ID or new password to update.';
+      msg.style.display = 'block';
+      return;
+    }
+
+    if (newPw && newPw !== confirmPw) {
+      msg.className = 'notice notice-error';
+      msg.textContent = 'Passwords do not match.';
+      msg.style.display = 'block';
+      return;
+    }
+
+    const current = JSON.parse(localStorage.getItem('hf543_admin') || '{}');
+    const updatedId = newId || current.id;
+    let updatedHash = current.passwordHash;
+    if (newPw) { updatedHash = await sha256(newPw); }
+
+    localStorage.setItem('hf543_admin', JSON.stringify({id: updatedId, passwordHash: updatedHash}));
+    msg.className = 'notice notice-success';
+    msg.textContent = 'Credentials updated. You will need these on next login.';
+    msg.style.display = 'block';
+    document.getElementById('new-admin-id').value = '';
+    document.getElementById('new-admin-pw').value = '';
+    document.getElementById('confirm-admin-pw').value = '';
+  });
+
+  // Export
+  document.getElementById('export-btn').addEventListener('click', () => {
+    const content = JSON.parse(localStorage.getItem('hf543_content') || '{}');
+    const blob = new Blob([JSON.stringify(content, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hf543_content.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Import
+  document.getElementById('import-file').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        localStorage.setItem('hf543_content', JSON.stringify(data));
+        const msg = document.getElementById('content-msg');
+        msg.className = 'notice notice-success';
+        msg.textContent = 'Content imported successfully. Refresh the main site to see changes.';
+        msg.style.display = 'block';
+      } catch (err) {
+        const msg = document.getElementById('content-msg');
+        msg.className = 'notice notice-error';
+        msg.textContent = 'Invalid JSON file.';
+        msg.style.display = 'block';
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Reset
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (!confirm('Reset all site content to defaults? This will remove all admin edits.')) return;
+    localStorage.removeItem('hf543_content');
+    const msg = document.getElementById('content-msg');
+    msg.className = 'notice notice-success';
+    msg.textContent = 'Content reset to defaults. Refresh the main site to see changes.';
+    msg.style.display = 'block';
+  });
+}
+
+// ============================================================
+// EVENT BINDINGS
+// ============================================================
+document.getElementById('login-btn').addEventListener('click', attemptLogin);
+document.getElementById('login-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') attemptLogin();
+});
+document.getElementById('login-id').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-pw').focus();
+});
+
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+document.querySelectorAll('#sidebar-nav button').forEach(btn => {
+  btn.addEventListener('click', () => showSection(btn.dataset.section));
+});
+
+document.getElementById('mobile-sidebar-toggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  await initAdmin();
+  if (sessionStorage.getItem('hf543_session') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    showSection('music');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

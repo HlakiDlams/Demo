@@ -822,13 +822,30 @@ function saveSiteContent(content) {
 // ============================================================
 // AUTH
 // ============================================================
-const DEFAULT_ADMIN_ID = 'HF543';
-const DEFAULT_ADMIN_PASS = 'SpiritShadow2026';
+// MULTI-USER ACCOUNTS
+// Six crew accounts. Stored as array in localStorage 'hf543_accounts'.
+// ============================================================
+const DEFAULT_ACCOUNTS = [
+  { id: 'HF543',    pass: 'SpiritShadow2026' },
+  { id: 'HFAdmin1', pass: 'Nx7@Kp2mQr' },
+  { id: 'HFAdmin2', pass: 'Bw4#Tz9vLs' },
+  { id: 'HFAdmin3', pass: 'Yq8!Jf3cDm' },
+  { id: 'HFAdmin4', pass: 'Rv6$Xh5nWk' },
+  { id: 'HFAdmin5', pass: 'Gs2%Uc1bPe' },
+];
 
 async function initAdmin() {
-  if (!localStorage.getItem('hf543_admin')) {
-    const hash = await sha256(DEFAULT_ADMIN_PASS);
-    localStorage.setItem('hf543_admin', JSON.stringify({id: DEFAULT_ADMIN_ID, passwordHash: hash}));
+  if (!localStorage.getItem('hf543_accounts')) {
+    const accounts = await Promise.all(DEFAULT_ACCOUNTS.map(async a => ({
+      id: a.id,
+      passwordHash: await sha256(a.pass)
+    })));
+    localStorage.setItem('hf543_accounts', JSON.stringify(accounts));
+  }
+  // Migrate old single-account format
+  if (localStorage.getItem('hf543_admin') && !localStorage.getItem('hf543_migrated')) {
+    localStorage.removeItem('hf543_admin');
+    localStorage.setItem('hf543_migrated', '1');
   }
 }
 
@@ -838,11 +855,12 @@ async function attemptLogin() {
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
 
-  const stored = JSON.parse(localStorage.getItem('hf543_admin') || '{}');
+  const accounts = JSON.parse(localStorage.getItem('hf543_accounts') || '[]');
   const hash = await sha256(pw);
+  const match = accounts.find(a => a.id === id && a.passwordHash === hash);
 
-  if (id === stored.id && hash === stored.passwordHash) {
-    sessionStorage.setItem('hf543_session', '1');
+  if (match) {
+    sessionStorage.setItem('hf543_session', id);
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
     showSection('music');
@@ -1297,11 +1315,39 @@ function renderContactsSection(container) {
 function renderSettings(container) {
   container.innerHTML = `
     <div class="settings-section">
-      <div class="settings-title">Change Credentials</div>
+      <div class="settings-title">Crew Accounts</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:1rem;">6 accounts total. Share each ID + password with your crew member only. They log in at this same URL.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;max-width:500px;" id="accounts-table">
+        <thead><tr style="color:var(--pink);text-align:left;">
+          <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Account ID</th>
+          <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Role</th>
+        </tr></thead>
+        <tbody id="accounts-tbody"></tbody>
+      </table>
+      <script>
+        (function(){
+          const accounts = JSON.parse(localStorage.getItem('hf543_accounts')||'[]');
+          const roles = ['Owner','Crew 1','Crew 2','Crew 3','Crew 4','Crew 5'];
+          const tbody = document.getElementById('accounts-tbody');
+          if(tbody && accounts.length){
+            tbody.innerHTML = accounts.map((a,i)=>`<tr><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a;color:var(--white);">${a.id}</td><td style="padding:6px 8px;border-bottom:1px solid #1a1a1a;color:var(--muted);">${roles[i]||'Crew'}</td></tr>`).join('');
+          }
+        })();
+      </script>
+    </div>
+
+    <div class="settings-section" style="margin-top:2rem;">
+      <div class="settings-title">Change Account Password</div>
       <div class="settings-row">
         <div class="f-group" style="max-width:320px;">
-          <label class="f-label">Admin ID</label>
-          <input class="f-input" type="text" id="new-admin-id" placeholder="New admin ID"/>
+          <label class="f-label">Account ID to update</label>
+          <input class="f-input" type="text" id="target-account-id" placeholder="e.g. HFAdmin1"/>
+        </div>
+      </div>
+      <div class="settings-row" style="margin-top:0.75rem;">
+        <div class="f-group" style="max-width:320px;">
+          <label class="f-label">New Account ID (optional)</label>
+          <input class="f-input" type="text" id="new-admin-id" placeholder="Leave blank to keep current"/>
         </div>
       </div>
       <div class="settings-row" style="margin-top:0.75rem;">
@@ -1317,7 +1363,7 @@ function renderSettings(container) {
         </div>
       </div>
       <div style="margin-top:1rem;">
-        <button class="btn btn-pink" id="save-creds-btn">Save Credentials</button>
+        <button class="btn btn-pink" id="save-creds-btn">Update Account</button>
       </div>
       <div id="creds-msg" class="notice" style="display:none;margin-top:0.75rem;max-width:400px;"></div>
     </div>
@@ -1357,14 +1403,23 @@ function renderSettings(container) {
       return;
     }
 
-    const current = JSON.parse(localStorage.getItem('hf543_admin') || '{}');
-    const updatedId = newId || current.id;
-    let updatedHash = current.passwordHash;
-    if (newPw) { updatedHash = await sha256(newPw); }
+    const accounts = JSON.parse(localStorage.getItem('hf543_accounts') || '[]');
+    const targetId = document.getElementById('target-account-id').value.trim() || newId;
+    const idx = accounts.findIndex(a => a.id === targetId);
 
-    localStorage.setItem('hf543_admin', JSON.stringify({id: updatedId, passwordHash: updatedHash}));
+    if (idx === -1) {
+      msg.className = 'notice notice-error';
+      msg.textContent = 'Account ID not found. Check the Account ID field.';
+      msg.style.display = 'block';
+      return;
+    }
+
+    if (newId && newId !== accounts[idx].id) accounts[idx].id = newId;
+    if (newPw) accounts[idx].passwordHash = await sha256(newPw);
+
+    localStorage.setItem('hf543_accounts', JSON.stringify(accounts));
     msg.className = 'notice notice-success';
-    msg.textContent = 'Credentials updated. You will need these on next login.';
+    msg.textContent = 'Credentials updated for ' + accounts[idx].id + '.';
     msg.style.display = 'block';
     document.getElementById('new-admin-id').value = '';
     document.getElementById('new-admin-pw').value = '';

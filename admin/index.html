@@ -655,12 +655,9 @@ body {
 
 </div><!-- end #dashboard -->
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <script>
 // ============================================================
-// FIREBASE
+// FIREBASE — modular SDK via dynamic import (supports named databases)
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAUFmQpawkSbCSvK6x6_KosNkfjkS51ZiY",
@@ -672,28 +669,34 @@ const firebaseConfig = {
 };
 
 let DB = null;
+let FS = null; // Firestore operation functions
 let CONTENT_CACHE = null;
 let DRAFTS_CACHE = null;
 
 async function initFirestore() {
   try {
-    firebase.initializeApp(firebaseConfig);
-    DB = firebase.firestore();
+    const [appMod, fsMod] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
+    ]);
+    const app = appMod.initializeApp(firebaseConfig);
+    DB = fsMod.getFirestore(app, 'hfactor543-studios');
+    FS = fsMod;
 
     const [contentSnap, draftsSnap] = await Promise.all([
-      DB.collection('hf543').doc('content').get(),
-      DB.collection('hf543').doc('drafts').get(),
+      FS.getDoc(FS.doc(DB, 'hf543', 'content')),
+      FS.getDoc(FS.doc(DB, 'hf543', 'drafts')),
     ]);
 
-    if (contentSnap.exists) CONTENT_CACHE = contentSnap.data();
-    DRAFTS_CACHE = draftsSnap.exists ? draftsSnap.data() : {};
+    if (contentSnap.exists()) CONTENT_CACHE = contentSnap.data();
+    DRAFTS_CACHE = draftsSnap.exists() ? draftsSnap.data() : {};
 
     // Real-time listeners
-    DB.collection('hf543').doc('content').onSnapshot(s => {
-      if (s.exists) CONTENT_CACHE = s.data();
+    FS.onSnapshot(FS.doc(DB, 'hf543', 'content'), s => {
+      if (s.exists()) CONTENT_CACHE = s.data();
     });
-    DB.collection('hf543').doc('drafts').onSnapshot(s => {
-      DRAFTS_CACHE = s.exists ? s.data() : {};
+    FS.onSnapshot(FS.doc(DB, 'hf543', 'drafts'), s => {
+      DRAFTS_CACHE = s.exists() ? s.data() : {};
       updatePendingBadge();
     });
   } catch(e) {
@@ -869,8 +872,8 @@ async function saveSiteContent(content, section) {
   if (currentUser.role === 'owner') {
     localStorage.setItem('hf543_content', JSON.stringify(content));
     CONTENT_CACHE = content;
-    if (DB) {
-      try { await DB.collection('hf543').doc('content').set(content); }
+    if (DB && FS) {
+      try { await FS.setDoc(FS.doc(DB, 'hf543', 'content'), content); }
       catch(e) { console.warn('Firestore write failed:', e.message); }
     }
     showToast('✓ Published live');
@@ -886,8 +889,8 @@ async function saveSiteContent(content, section) {
     };
     localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
     DRAFTS_CACHE = drafts;
-    if (DB) {
-      try { await DB.collection('hf543').doc('drafts').set(drafts); }
+    if (DB && FS) {
+      try { await FS.setDoc(FS.doc(DB, 'hf543', 'drafts'), drafts); }
       catch(e) { console.warn('Firestore draft write failed:', e.message); }
     }
     showToast('📨 Submitted for owner approval');
@@ -1441,9 +1444,9 @@ async function renderContactsSection(container) {
   container.innerHTML = '<div style="padding:2rem;color:var(--muted);font-size:12px;">Loading contacts...</div>';
 
   let contacts = [];
-  if (DB) {
+  if (DB && FS) {
     try {
-      const snap = await DB.collection('contacts').orderBy('date', 'desc').limit(100).get();
+      const snap = await FS.getDocs(FS.query(FS.collection(DB, 'contacts'), FS.orderBy('date', 'desc'), FS.limit(100)));
       contacts = snap.docs.map(d => d.data());
     } catch(e) {
       console.warn('Firestore contacts read failed:', e.message);
@@ -1617,8 +1620,8 @@ function renderSettings(container) {
         const data = JSON.parse(ev.target.result);
         localStorage.setItem('hf543_content', JSON.stringify(data));
         CONTENT_CACHE = data;
-        if (DB) {
-          try { await DB.collection('hf543').doc('content').set(data); }
+        if (DB && FS) {
+          try { await FS.setDoc(FS.doc(DB, 'hf543', 'content'), data); }
           catch(e) { console.warn('Firestore import write failed:', e.message); }
         }
         const msg = document.getElementById('content-msg');
@@ -1640,8 +1643,8 @@ function renderSettings(container) {
     if (!confirm('Reset all site content to defaults? This will remove all admin edits.')) return;
     localStorage.removeItem('hf543_content');
     CONTENT_CACHE = null;
-    if (DB) {
-      try { await DB.collection('hf543').doc('content').delete(); }
+    if (DB && FS) {
+      try { await FS.deleteDoc(FS.doc(DB, 'hf543', 'content')); }
       catch(e) { console.warn('Firestore reset failed:', e.message); }
     }
     const msg = document.getElementById('content-msg');
@@ -1754,11 +1757,11 @@ function renderApprovals(container) {
       delete drafts[key];
       localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
       DRAFTS_CACHE = drafts;
-      if (DB) {
+      if (DB && FS) {
         try {
           await Promise.all([
-            DB.collection('hf543').doc('content').set(content),
-            DB.collection('hf543').doc('drafts').set(drafts),
+            FS.setDoc(FS.doc(DB, 'hf543', 'content'), content),
+            FS.setDoc(FS.doc(DB, 'hf543', 'drafts'), drafts),
           ]);
         } catch(e) { console.warn('Firestore approval write failed:', e.message); }
       }
@@ -1776,8 +1779,8 @@ function renderApprovals(container) {
       delete drafts[key];
       localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
       DRAFTS_CACHE = drafts;
-      if (DB) {
-        try { await DB.collection('hf543').doc('drafts').set(drafts); }
+      if (DB && FS) {
+        try { await FS.setDoc(FS.doc(DB, 'hf543', 'drafts'), drafts); }
         catch(e) { console.warn('Firestore reject write failed:', e.message); }
       }
       showToast('✕ Submission rejected');

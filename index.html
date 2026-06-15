@@ -1311,12 +1311,9 @@ footer {
   </button>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
 <script>
 // ============================================================
-// FIREBASE
+// FIREBASE — modular SDK via dynamic import (supports named databases)
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAUFmQpawkSbCSvK6x6_KosNkfjkS51ZiY",
@@ -1328,19 +1325,26 @@ const firebaseConfig = {
 };
 
 let DB = null;
+let FS = null; // Firestore operation functions
 let CONTENT_CACHE = null;
 
 async function initFirestore() {
   try {
-    firebase.initializeApp(firebaseConfig);
-    DB = firebase.firestore();
-    const snap = await DB.collection('hf543').doc('content').get();
-    if (snap.exists) {
+    const [appMod, fsMod] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'),
+    ]);
+    const app = appMod.initializeApp(firebaseConfig);
+    DB = fsMod.getFirestore(app, 'hfactor543-studios');
+    FS = fsMod;
+
+    const snap = await FS.getDoc(FS.doc(DB, 'hf543', 'content'));
+    if (snap.exists()) {
       CONTENT_CACHE = Object.assign({}, DEFAULT_CONTENT, snap.data());
     }
     // Real-time listener: re-render whenever owner publishes
-    DB.collection('hf543').doc('content').onSnapshot(snap => {
-      if (snap.exists) {
+    FS.onSnapshot(FS.doc(DB, 'hf543', 'content'), snap => {
+      if (snap.exists()) {
         CONTENT_CACHE = Object.assign({}, DEFAULT_CONTENT, snap.data());
         if (document.getElementById('main-page') &&
             document.getElementById('main-page').style.display !== 'none') {
@@ -1855,7 +1859,7 @@ function renderSectionPage(container, hash) {
       document.getElementById('contact-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const entry = { name: this.name.value, email: this.email.value, subject: this.subject.value, message: this.message.value, date: new Date().toISOString() };
-        if (DB) { DB.collection('contacts').add(entry).catch(()=>{}); }
+        if (DB && FS) { FS.addDoc(FS.collection(DB, 'contacts'), entry).catch(()=>{}); }
         else {
           const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
           contacts.push(entry);

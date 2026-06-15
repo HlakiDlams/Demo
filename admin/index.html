@@ -599,7 +599,10 @@ body {
       <input class="login-input" type="password" id="login-pw" autocomplete="current-password" placeholder="Enter password"/>
     </div>
     <button class="login-btn" id="login-btn">Login →</button>
-    <div class="login-error" id="login-error">Invalid credentials. Try again.</div>
+    <div class="login-error" id="login-error"></div>
+    <div style="text-align:center;margin-top:1.2rem;">
+      <a href="#" id="reset-accounts-link" style="font-size:10px;color:var(--muted);text-decoration:underline;">Having trouble? Reset admin accounts</a>
+    </div>
   </div>
 </div>
 
@@ -926,21 +929,46 @@ async function attemptLogin() {
   const id = document.getElementById('login-id').value.trim();
   const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
   errEl.style.display = 'none';
 
-  const accounts = JSON.parse(localStorage.getItem('hf543_accounts') || '[]');
-  const hash = await sha256(pw);
-  const match = accounts.find(a => a.id === id && a.passwordHash === hash);
-
-  if (match) {
-    currentUser = { id: match.id, role: match.role || 'crew' };
-    sessionStorage.setItem('hf543_session', JSON.stringify(currentUser));
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-    applyRoleUI();
-    showSection('music');
-  } else {
+  if (!id || !pw) {
+    errEl.textContent = 'Enter your Admin ID and password.';
     errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+
+  try {
+    // Ensure accounts are initialised (guards against slow async init)
+    let accounts = JSON.parse(localStorage.getItem('hf543_accounts') || 'null');
+    if (!accounts || accounts.length === 0) {
+      await initAdmin();
+      accounts = JSON.parse(localStorage.getItem('hf543_accounts') || '[]');
+    }
+
+    const hash = await sha256(pw);
+    const match = accounts.find(a => a.id === id && a.passwordHash === hash);
+
+    if (match) {
+      currentUser = { id: match.id, role: match.role || 'crew' };
+      sessionStorage.setItem('hf543_session', JSON.stringify(currentUser));
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'flex';
+      applyRoleUI();
+      showSection('music');
+    } else {
+      errEl.textContent = 'Incorrect Admin ID or password.';
+      errEl.style.display = 'block';
+    }
+  } catch(err) {
+    errEl.textContent = 'Login error: ' + (err.message || 'unknown') + '. Use the live URL (HTTPS) if opening locally.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Login →';
+    btn.disabled = false;
   }
 }
 
@@ -1565,6 +1593,14 @@ document.getElementById('login-pw').addEventListener('keydown', e => {
 document.getElementById('login-id').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('login-pw').focus();
 });
+document.getElementById('reset-accounts-link').addEventListener('click', e => {
+  e.preventDefault();
+  if (!confirm('This clears saved admin accounts so they can be recreated fresh.\nContinue?')) return;
+  localStorage.removeItem('hf543_accounts');
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = 'Accounts cleared. Reload the page and try logging in again.';
+  errEl.style.display = 'block';
+});
 
 document.getElementById('logout-btn').addEventListener('click', logout);
 
@@ -1673,7 +1709,7 @@ function renderApprovals(container) {
 // INIT
 // ============================================================
 async function init() {
-  await initAdmin();
+  try { await initAdmin(); } catch(e) { console.warn('initAdmin:', e); }
   const sess = sessionStorage.getItem('hf543_session');
   if (sess) {
     try {

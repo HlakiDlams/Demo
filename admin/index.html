@@ -892,14 +892,29 @@ const DEFAULT_ACCOUNTS = [
 let currentUser = { id: '', role: 'crew' };
 
 async function initAdmin() {
-  if (!localStorage.getItem('hf543_accounts')) {
-    const accounts = await Promise.all(DEFAULT_ACCOUNTS.map(async a => ({
+  let accounts = JSON.parse(localStorage.getItem('hf543_accounts') || 'null');
+
+  if (!accounts) {
+    // First time — create all 6 accounts fresh with roles
+    accounts = await Promise.all(DEFAULT_ACCOUNTS.map(async a => ({
       id: a.id,
       passwordHash: await sha256(a.pass),
       role: a.role
     })));
     localStorage.setItem('hf543_accounts', JSON.stringify(accounts));
+  } else {
+    // Migration: accounts exist but may be missing role field
+    let changed = false;
+    accounts = accounts.map((a, i) => {
+      if (!a.role) {
+        changed = true;
+        return { ...a, role: i === 0 ? 'owner' : 'crew' };
+      }
+      return a;
+    });
+    if (changed) localStorage.setItem('hf543_accounts', JSON.stringify(accounts));
   }
+
   // Migrate old single-account format
   if (localStorage.getItem('hf543_admin') && !localStorage.getItem('hf543_migrated')) {
     localStorage.removeItem('hf543_admin');

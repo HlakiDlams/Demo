@@ -630,9 +630,11 @@ body {
       <li><button data-section="merch"><span>🛍️</span> Merch</button></li>
       <li><button data-section="misc"><span>⚡</span> Misc</button></li>
       <li><button data-section="contacts"><span>📬</span> Contacts</button></li>
-      <li><button data-section="settings"><span>⚙️</span> Settings</button></li>
+      <li data-owner-only style="display:none"><button data-section="approvals"><span>🔔</span> Approvals <span id="pending-badge" style="display:none;background:var(--pink);color:#000;border-radius:9px;font-size:10px;padding:1px 6px;margin-left:4px;font-weight:bold;">0</span></button></li>
+      <li data-owner-only style="display:none"><button data-section="settings"><span>⚙️</span> Settings</button></li>
     </ul>
     <div class="sidebar-footer">
+      <div id="logged-in-user" style="font-size:10px;color:var(--pink);margin-bottom:0.6rem;letter-spacing:0.08em;"></div>
       <button id="logout-btn">⏻ Logout</button>
     </div>
   </aside>
@@ -815,8 +817,61 @@ function getSiteContent() {
   return merged;
 }
 
-function saveSiteContent(content) {
-  localStorage.setItem('hf543_content', JSON.stringify(content));
+function saveSiteContent(content, section) {
+  if (currentUser.role === 'owner') {
+    localStorage.setItem('hf543_content', JSON.stringify(content));
+    showToast('✓ Published live');
+  } else {
+    // Crew: save to draft queue for owner approval
+    const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+    drafts[section] = {
+      data: section ? content[section] : content,
+      fullContent: content,
+      author: currentUser.id,
+      timestamp: new Date().toISOString(),
+      section: section || 'all'
+    };
+    localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+    showToast('📨 Submitted for owner approval');
+    updatePendingBadge();
+  }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('hf-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'hf-toast';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#ff6eb4;color:#000;padding:0.6rem 1.4rem;font-family:var(--font-body);font-size:12px;font-weight:bold;z-index:9999;border-radius:2px;pointer-events:none;transition:opacity 0.4s;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2800);
+}
+
+function updatePendingBadge() {
+  const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+  const count = Object.keys(drafts).length;
+  const badge = document.getElementById('pending-badge');
+  if (badge) { badge.textContent = count; badge.style.display = count ? 'inline' : 'none'; }
+}
+
+function applyRoleUI() {
+  const isOwner = currentUser.role === 'owner';
+  // Show/hide Approvals + Settings sidebar buttons
+  document.querySelectorAll('[data-owner-only]').forEach(el => {
+    el.style.display = isOwner ? '' : 'none';
+  });
+  // Update save buttons label
+  document.querySelectorAll('.save-section-btn').forEach(btn => {
+    btn.textContent = isOwner ? 'Save & Publish →' : 'Submit for Approval →';
+  });
+  // Show logged-in user
+  const userEl = document.getElementById('logged-in-user');
+  if (userEl) userEl.textContent = currentUser.id + (isOwner ? ' · Owner' : ' · Crew');
+  updatePendingBadge();
 }
 
 // ============================================================
@@ -826,19 +881,22 @@ function saveSiteContent(content) {
 // Six crew accounts. Stored as array in localStorage 'hf543_accounts'.
 // ============================================================
 const DEFAULT_ACCOUNTS = [
-  { id: 'HF543',    pass: 'SpiritShadow2026' },
-  { id: 'HFAdmin1', pass: 'Nx7@Kp2mQr' },
-  { id: 'HFAdmin2', pass: 'Bw4#Tz9vLs' },
-  { id: 'HFAdmin3', pass: 'Yq8!Jf3cDm' },
-  { id: 'HFAdmin4', pass: 'Rv6$Xh5nWk' },
-  { id: 'HFAdmin5', pass: 'Gs2%Uc1bPe' },
+  { id: 'HF543',    pass: 'SpiritShadow2026', role: 'owner' },
+  { id: 'HFAdmin1', pass: 'Nx7@Kp2mQr',      role: 'crew'  },
+  { id: 'HFAdmin2', pass: 'Bw4#Tz9vLs',      role: 'crew'  },
+  { id: 'HFAdmin3', pass: 'Yq8!Jf3cDm',      role: 'crew'  },
+  { id: 'HFAdmin4', pass: 'Rv6$Xh5nWk',      role: 'crew'  },
+  { id: 'HFAdmin5', pass: 'Gs2%Uc1bPe',      role: 'crew'  },
 ];
+
+let currentUser = { id: '', role: 'crew' };
 
 async function initAdmin() {
   if (!localStorage.getItem('hf543_accounts')) {
     const accounts = await Promise.all(DEFAULT_ACCOUNTS.map(async a => ({
       id: a.id,
-      passwordHash: await sha256(a.pass)
+      passwordHash: await sha256(a.pass),
+      role: a.role
     })));
     localStorage.setItem('hf543_accounts', JSON.stringify(accounts));
   }
@@ -860,9 +918,11 @@ async function attemptLogin() {
   const match = accounts.find(a => a.id === id && a.passwordHash === hash);
 
   if (match) {
-    sessionStorage.setItem('hf543_session', id);
+    currentUser = { id: match.id, role: match.role || 'crew' };
+    sessionStorage.setItem('hf543_session', JSON.stringify(currentUser));
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
+    applyRoleUI();
     showSection('music');
   } else {
     errEl.style.display = 'block';
@@ -898,6 +958,7 @@ const SECTION_TITLES = {
   merch: 'Merch',
   misc: 'Misc',
   contacts: 'Contacts',
+  approvals: 'Pending Approvals',
   settings: 'Settings',
 };
 
@@ -931,7 +992,14 @@ function renderSection(name) {
     case 'merch': renderMerchEditor(body, content); break;
     case 'misc': renderMiscEditor(body, content); break;
     case 'contacts': renderContactsSection(body); break;
-    case 'settings': renderSettings(body); break;
+    case 'approvals': renderApprovals(body); break;
+    case 'settings':
+      if (currentUser.role === 'owner') {
+        renderSettings(body);
+      } else {
+        body.innerHTML = `<div style="padding:2rem;color:var(--muted);font-size:13px;">Settings are restricted to the studio owner.</div>`;
+      }
+      break;
     default: body.innerHTML = '<div class="empty-state">Section not found.</div>';
   }
 }
@@ -1059,7 +1127,7 @@ function bindCardEditorEvents(container, content, key, fields, render) {
       if (!confirm('Delete this item?')) return;
       const items = content[key];
       items.splice(idx, 1);
-      saveSiteContent(content);
+      saveSiteContent(content, key);
       render(null);
     });
   });
@@ -1078,7 +1146,7 @@ function bindCardEditorEvents(container, content, key, fields, render) {
       } else {
         content[key][idx] = newItem;
       }
-      saveSiteContent(content);
+      saveSiteContent(content, key);
       render(null);
     });
   });
@@ -1209,7 +1277,7 @@ function renderProfileEditor(container, content) {
       bio: form.bio.value,
       tags: form.tags.value.split(',').map(t => t.trim()).filter(Boolean),
     };
-    saveSiteContent(content);
+    saveSiteContent(content, 'profile');
     document.getElementById('profile-save-msg').style.display = 'block';
     setTimeout(() => { document.getElementById('profile-save-msg').style.display = 'none'; }, 3000);
   });
@@ -1494,13 +1562,114 @@ document.getElementById('mobile-sidebar-toggle').addEventListener('click', () =>
 });
 
 // ============================================================
+// APPROVALS (owner only)
+// ============================================================
+function renderApprovals(container) {
+  const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+  const keys = Object.keys(drafts);
+
+  if (keys.length === 0) {
+    container.innerHTML = `<div style="padding:2rem;color:var(--muted);font-size:13px;">No pending submissions. Your crew hasn't submitted any changes yet.</div>`;
+    return;
+  }
+
+  const SECTION_LABELS = {
+    music:'Music',film:'Film',series:'Series',illustration:'Illustration',
+    comics:'Comics',apps:'Apps',fashion:'Fashion',youtubeMain:'YouTube — Main',
+    youtubeGaming:'YouTube — Gaming',youtubeReactions:'YouTube — Reactions',
+    socialsVideo:'Socials — Video',socialsMessaging:'Socials — Messaging',
+    socialsSocial:'Socials — Social Media',socialsCreative:'Socials — Creative',
+    web:'Web Projects',projects:'Projects',skills:'Skills',profile:'Profile',
+    'merch.apparel':'Merch — Apparel','merch.collectibles':'Merch — Collectibles',
+    'merch.accessories':'Merch — Accessories','merch.digital':'Merch — Digital',
+    'merch.prints':'Merch — Prints',misc:'Misc',all:'Full Content'
+  };
+
+  container.innerHTML = `
+    <div style="margin-bottom:1.5rem;padding:1rem;background:var(--panel);border:1px solid var(--pink);border-left-width:3px;">
+      <div style="font-size:12px;color:var(--pink);font-weight:bold;margin-bottom:0.3rem;">
+        ${keys.length} pending submission${keys.length>1?'s':''} waiting for your approval
+      </div>
+      <div style="font-size:11px;color:var(--muted);">Review each change below. Approve to publish live, or Reject to discard.</div>
+    </div>
+    ${keys.map(k => {
+      const d = drafts[k];
+      const date = new Date(d.timestamp).toLocaleString();
+      const label = SECTION_LABELS[k] || k;
+      const preview = JSON.stringify(d.data).slice(0, 200) + (JSON.stringify(d.data).length > 200 ? '…' : '');
+      return `
+        <div class="draft-card" style="background:var(--panel);border:1px solid var(--border);padding:1.5rem;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+            <div>
+              <div style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:0.2rem;">${label}</div>
+              <div style="font-size:11px;color:var(--muted);">By <span style="color:var(--pink);">${d.author}</span> · ${date}</div>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+              <button class="btn btn-pink approve-btn" data-key="${k}" style="font-size:11px;padding:0.4rem 1rem;">✓ Approve & Publish</button>
+              <button class="btn reject-btn" data-key="${k}" style="font-size:11px;padding:0.4rem 1rem;background:transparent;border:1px solid var(--border);color:var(--muted);">✕ Reject</button>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);background:#0a0a0a;padding:0.75rem;border:1px solid var(--border);overflow:hidden;word-break:break-all;line-height:1.5;">${preview}</div>
+        </div>
+      `;
+    }).join('')}
+  `;
+
+  container.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+      const draft = drafts[key];
+      if (!draft) return;
+
+      const content = getSiteContent();
+      if (key.includes('.')) {
+        // nested key like merch.apparel
+        const [parent, child] = key.split('.');
+        if (!content[parent]) content[parent] = {};
+        content[parent][child] = draft.data;
+      } else {
+        content[key] = draft.data;
+      }
+      localStorage.setItem('hf543_content', JSON.stringify(content));
+      delete drafts[key];
+      localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+      showToast('✓ Approved & published live');
+      updatePendingBadge();
+      renderApprovals(container);
+    });
+  });
+
+  container.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Reject and discard this submission?')) return;
+      const key = btn.dataset.key;
+      const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+      delete drafts[key];
+      localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+      showToast('✕ Submission rejected');
+      updatePendingBadge();
+      renderApprovals(container);
+    });
+  });
+}
+
+// ============================================================
 // INIT
 // ============================================================
 async function init() {
   await initAdmin();
-  if (sessionStorage.getItem('hf543_session') === '1') {
+  const sess = sessionStorage.getItem('hf543_session');
+  if (sess) {
+    try {
+      currentUser = JSON.parse(sess);
+    } catch(e) {
+      // legacy string session
+      currentUser = { id: sess, role: 'crew' };
+    }
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
+    applyRoleUI();
     showSection('music');
   }
 }

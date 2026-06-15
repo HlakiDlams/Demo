@@ -655,7 +655,52 @@ body {
 
 </div><!-- end #dashboard -->
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAUFmQpawkSbCSvK6x6_KosNkfjkS51ZiY",
+  authDomain: "hf543-studios.firebaseapp.com",
+  projectId: "hf543-studios",
+  storageBucket: "hf543-studios.firebasestorage.app",
+  messagingSenderId: "740100290453",
+  appId: "1:740100290453:web:44cb6e8d31c4c869a5689c"
+};
+
+let DB = null;
+let CONTENT_CACHE = null;
+let DRAFTS_CACHE = null;
+
+async function initFirestore() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    DB = firebase.firestore();
+
+    const [contentSnap, draftsSnap] = await Promise.all([
+      DB.collection('hf543').doc('content').get(),
+      DB.collection('hf543').doc('drafts').get(),
+    ]);
+
+    if (contentSnap.exists) CONTENT_CACHE = contentSnap.data();
+    DRAFTS_CACHE = draftsSnap.exists ? draftsSnap.data() : {};
+
+    // Real-time listeners
+    DB.collection('hf543').doc('content').onSnapshot(s => {
+      if (s.exists) CONTENT_CACHE = s.data();
+    });
+    DB.collection('hf543').doc('drafts').onSnapshot(s => {
+      DRAFTS_CACHE = s.exists ? s.data() : {};
+      updatePendingBadge();
+    });
+  } catch(e) {
+    console.warn('Firestore unavailable, using localStorage:', e.message);
+  }
+}
+
 // ============================================================
 // SHA-256 VIA WEB CRYPTO
 // ============================================================
@@ -810,23 +855,28 @@ const DEFAULT_CONTENT = {
 // CONTENT HELPERS
 // ============================================================
 function getSiteContent() {
-  const stored = JSON.parse(localStorage.getItem('hf543_content') || '{}');
+  const base = CONTENT_CACHE || JSON.parse(localStorage.getItem('hf543_content') || '{}');
   const merged = JSON.parse(JSON.stringify(DEFAULT_CONTENT));
-  for (const key in stored) {
-    if (Object.prototype.hasOwnProperty.call(stored, key)) {
-      merged[key] = stored[key];
+  for (const key in base) {
+    if (Object.prototype.hasOwnProperty.call(base, key)) {
+      merged[key] = base[key];
     }
   }
   return merged;
 }
 
-function saveSiteContent(content, section) {
+async function saveSiteContent(content, section) {
   if (currentUser.role === 'owner') {
     localStorage.setItem('hf543_content', JSON.stringify(content));
+    CONTENT_CACHE = content;
+    if (DB) {
+      try { await DB.collection('hf543').doc('content').set(content); }
+      catch(e) { console.warn('Firestore write failed:', e.message); }
+    }
     showToast('✓ Published live');
   } else {
     // Crew: save to draft queue for owner approval
-    const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+    const drafts = DRAFTS_CACHE ? JSON.parse(JSON.stringify(DRAFTS_CACHE)) : JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
     drafts[section] = {
       data: section ? content[section] : content,
       fullContent: content,
@@ -835,6 +885,11 @@ function saveSiteContent(content, section) {
       section: section || 'all'
     };
     localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+    DRAFTS_CACHE = drafts;
+    if (DB) {
+      try { await DB.collection('hf543').doc('drafts').set(drafts); }
+      catch(e) { console.warn('Firestore draft write failed:', e.message); }
+    }
     showToast('📨 Submitted for owner approval');
     updatePendingBadge();
   }
@@ -855,7 +910,7 @@ function showToast(msg) {
 }
 
 function updatePendingBadge() {
-  const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+  const drafts = DRAFTS_CACHE !== null ? DRAFTS_CACHE : JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
   const count = Object.keys(drafts).length;
   const badge = document.getElementById('pending-badge');
   if (badge) { badge.textContent = count; badge.style.display = count ? 'inline' : 'none'; }
@@ -1382,19 +1437,30 @@ function renderMiscEditor(container, content) {
 // ============================================================
 // CONTACTS
 // ============================================================
-function renderContactsSection(container) {
-  const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+async function renderContactsSection(container) {
+  container.innerHTML = '<div style="padding:2rem;color:var(--muted);font-size:12px;">Loading contacts...</div>';
 
-  function render() {
-    const c2 = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+  let contacts = [];
+  if (DB) {
+    try {
+      const snap = await DB.collection('contacts').orderBy('date', 'desc').limit(100).get();
+      contacts = snap.docs.map(d => d.data());
+    } catch(e) {
+      console.warn('Firestore contacts read failed:', e.message);
+      contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]').reverse();
+    }
+  } else {
+    contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]').reverse();
+  }
+
+  function render(list) {
     container.innerHTML = `
       <div class="editor-toolbar">
-        <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);">${c2.length} submission${c2.length !== 1 ? 's' : ''}</div>
-        ${c2.length > 0 ? '<button class="btn btn-red" id="clear-contacts-btn">Clear All</button>' : ''}
+        <div style="font-family:var(--font-boot);font-size:11px;color:var(--muted);">${list.length} submission${list.length !== 1 ? 's' : ''}</div>
       </div>
-      ${c2.length === 0
+      ${list.length === 0
         ? '<div class="empty-state">No contact submissions yet.</div>'
-        : c2.slice().reverse().map((c, i) => `
+        : list.map(c => `
             <div class="contact-card">
               <div class="contact-header">
                 <div class="contact-name">${esc(c.name)}</div>
@@ -1407,17 +1473,9 @@ function renderContactsSection(container) {
           `).join('')
       }
     `;
-    const clearBtn = container.querySelector('#clear-contacts-btn');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        if (!confirm('Clear all contact submissions? This cannot be undone.')) return;
-        localStorage.removeItem('hf543_contacts');
-        render();
-      });
-    }
   }
 
-  render();
+  render(contacts);
 }
 
 // ============================================================
@@ -1539,7 +1597,7 @@ function renderSettings(container) {
 
   // Export
   document.getElementById('export-btn').addEventListener('click', () => {
-    const content = JSON.parse(localStorage.getItem('hf543_content') || '{}');
+    const content = CONTENT_CACHE || JSON.parse(localStorage.getItem('hf543_content') || '{}');
     const blob = new Blob([JSON.stringify(content, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1554,13 +1612,18 @@ function renderSettings(container) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       try {
         const data = JSON.parse(ev.target.result);
         localStorage.setItem('hf543_content', JSON.stringify(data));
+        CONTENT_CACHE = data;
+        if (DB) {
+          try { await DB.collection('hf543').doc('content').set(data); }
+          catch(e) { console.warn('Firestore import write failed:', e.message); }
+        }
         const msg = document.getElementById('content-msg');
         msg.className = 'notice notice-success';
-        msg.textContent = 'Content imported successfully. Refresh the main site to see changes.';
+        msg.textContent = 'Content imported & published to Firestore. Refresh the main site to see changes.';
         msg.style.display = 'block';
       } catch (err) {
         const msg = document.getElementById('content-msg');
@@ -1573,9 +1636,14 @@ function renderSettings(container) {
   });
 
   // Reset
-  document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('reset-btn').addEventListener('click', async () => {
     if (!confirm('Reset all site content to defaults? This will remove all admin edits.')) return;
     localStorage.removeItem('hf543_content');
+    CONTENT_CACHE = null;
+    if (DB) {
+      try { await DB.collection('hf543').doc('content').delete(); }
+      catch(e) { console.warn('Firestore reset failed:', e.message); }
+    }
     const msg = document.getElementById('content-msg');
     msg.className = 'notice notice-success';
     msg.textContent = 'Content reset to defaults. Refresh the main site to see changes.';
@@ -1667,15 +1735,14 @@ function renderApprovals(container) {
   `;
 
   container.querySelectorAll('.approve-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const key = btn.dataset.key;
-      const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+      const drafts = DRAFTS_CACHE ? JSON.parse(JSON.stringify(DRAFTS_CACHE)) : JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
       const draft = drafts[key];
       if (!draft) return;
 
       const content = getSiteContent();
       if (key.includes('.')) {
-        // nested key like merch.apparel
         const [parent, child] = key.split('.');
         if (!content[parent]) content[parent] = {};
         content[parent][child] = draft.data;
@@ -1683,8 +1750,18 @@ function renderApprovals(container) {
         content[key] = draft.data;
       }
       localStorage.setItem('hf543_content', JSON.stringify(content));
+      CONTENT_CACHE = content;
       delete drafts[key];
       localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+      DRAFTS_CACHE = drafts;
+      if (DB) {
+        try {
+          await Promise.all([
+            DB.collection('hf543').doc('content').set(content),
+            DB.collection('hf543').doc('drafts').set(drafts),
+          ]);
+        } catch(e) { console.warn('Firestore approval write failed:', e.message); }
+      }
       showToast('✓ Approved & published live');
       updatePendingBadge();
       renderApprovals(container);
@@ -1692,12 +1769,17 @@ function renderApprovals(container) {
   });
 
   container.querySelectorAll('.reject-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       if (!confirm('Reject and discard this submission?')) return;
       const key = btn.dataset.key;
-      const drafts = JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
+      const drafts = DRAFTS_CACHE ? JSON.parse(JSON.stringify(DRAFTS_CACHE)) : JSON.parse(localStorage.getItem('hf543_drafts') || '{}');
       delete drafts[key];
       localStorage.setItem('hf543_drafts', JSON.stringify(drafts));
+      DRAFTS_CACHE = drafts;
+      if (DB) {
+        try { await DB.collection('hf543').doc('drafts').set(drafts); }
+        catch(e) { console.warn('Firestore reject write failed:', e.message); }
+      }
       showToast('✕ Submission rejected');
       updatePendingBadge();
       renderApprovals(container);
@@ -1709,13 +1791,16 @@ function renderApprovals(container) {
 // INIT
 // ============================================================
 async function init() {
-  try { await initAdmin(); } catch(e) { console.warn('initAdmin:', e); }
+  // Run account init and Firestore in parallel
+  await Promise.all([
+    initAdmin().catch(e => console.warn('initAdmin:', e)),
+    initFirestore().catch(e => console.warn('initFirestore:', e)),
+  ]);
   const sess = sessionStorage.getItem('hf543_session');
   if (sess) {
     try {
       currentUser = JSON.parse(sess);
     } catch(e) {
-      // legacy string session
       currentUser = { id: sess, role: 'crew' };
     }
     document.getElementById('login-screen').style.display = 'none';

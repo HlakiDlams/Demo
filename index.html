@@ -1311,7 +1311,48 @@ footer {
   </button>
 </nav>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAUFmQpawkSbCSvK6x6_KosNkfjkS51ZiY",
+  authDomain: "hf543-studios.firebaseapp.com",
+  projectId: "hf543-studios",
+  storageBucket: "hf543-studios.firebasestorage.app",
+  messagingSenderId: "740100290453",
+  appId: "1:740100290453:web:44cb6e8d31c4c869a5689c"
+};
+
+let DB = null;
+let CONTENT_CACHE = null;
+
+async function initFirestore() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    DB = firebase.firestore();
+    const snap = await DB.collection('hf543').doc('content').get();
+    if (snap.exists) {
+      CONTENT_CACHE = Object.assign({}, DEFAULT_CONTENT, snap.data());
+    }
+    // Real-time listener: re-render whenever owner publishes
+    DB.collection('hf543').doc('content').onSnapshot(snap => {
+      if (snap.exists) {
+        CONTENT_CACHE = Object.assign({}, DEFAULT_CONTENT, snap.data());
+        if (document.getElementById('main-page') &&
+            document.getElementById('main-page').style.display !== 'none') {
+          router();
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('Firestore unavailable, using local content:', e.message);
+  }
+}
+
 // ============================================================
 // DEFAULT CONTENT
 // ============================================================
@@ -1458,6 +1499,8 @@ const DEFAULT_CONTENT = {
 // LOAD CONTENT (merge localStorage overrides)
 // ============================================================
 function loadContent() {
+  if (CONTENT_CACHE) return CONTENT_CACHE;
+  // Fallback: localStorage override merged with defaults
   const stored = JSON.parse(localStorage.getItem('hf543_content') || '{}');
   const merged = Object.assign({}, DEFAULT_CONTENT);
   for (const key in stored) {
@@ -1811,9 +1854,13 @@ function renderSectionPage(container, hash) {
       </section>`;
       document.getElementById('contact-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
-        contacts.push({ name: this.name.value, email: this.email.value, subject: this.subject.value, message: this.message.value, date: new Date().toISOString() });
-        localStorage.setItem('hf543_contacts', JSON.stringify(contacts));
+        const entry = { name: this.name.value, email: this.email.value, subject: this.subject.value, message: this.message.value, date: new Date().toISOString() };
+        if (DB) { DB.collection('contacts').add(entry).catch(()=>{}); }
+        else {
+          const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+          contacts.push(entry);
+          localStorage.setItem('hf543_contacts', JSON.stringify(contacts));
+        }
         document.getElementById('contact-success').style.display = 'block';
         this.reset();
         setTimeout(() => { document.getElementById('contact-success').style.display = 'none'; }, 5000);
@@ -1959,6 +2006,8 @@ window.addEventListener('storage', e => {
 // ============================================================
 // START
 // ============================================================
+// Kick off Firestore in parallel with boot animation (~3s window)
+initFirestore().catch(() => {});
 runBoot();
 </script>
 </body>

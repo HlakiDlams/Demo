@@ -480,6 +480,19 @@ section {
   color: #000;
 }
 
+/* Hero character image */
+.hero-character {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 85%;
+  max-height: 700px;
+  object-fit: contain;
+  object-position: bottom right;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
 /* Cards Grid */
 .cards-grid {
   display: grid;
@@ -830,6 +843,36 @@ section {
 .merch-panel { display: none; }
 .merch-panel.active { display: block; }
 
+.merch-featured-banner {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.merch-featured-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.merch-featured-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--white);
+  margin-bottom: 0.4rem;
+}
+
+.merch-featured-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .merch-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1026,6 +1069,33 @@ section {
   font-size: 11px;
 }
 
+/* Contact inline form fields */
+.contact-field { margin-bottom: 1rem; }
+.contact-label {
+  display: block;
+  font-family: var(--font-boot);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.contact-input {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  resize: vertical;
+}
+.contact-input:focus { border-color: var(--pink); }
+
 /* Sub-section label */
 .sub-section-label {
   font-family: var(--font-boot);
@@ -1056,6 +1126,99 @@ footer {
   font-size: 11px;
   color: var(--muted);
 }
+
+/* ============================================================
+   HOME GRID OF SECTION CARDS
+   ============================================================ */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+}
+@media (min-width: 600px) {
+  .home-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.home-card {
+  background: var(--panel);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.home-card:hover, .home-card:active { background: #1e1e1e; }
+.home-card-thumb {
+  aspect-ratio: 1;
+  background: var(--offblack, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  overflow: hidden;
+  position: relative;
+}
+.home-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.home-card-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+.home-card-info {
+  padding: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.home-card-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin-bottom: 0.2rem;
+}
+.home-card-count {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.home-card-arrow {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  font-size: 0.75rem;
+  color: var(--pink);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.home-card:hover .home-card-arrow { opacity: 1; }
+
+/* ============================================================
+   SECTION DETAIL PAGE HEADER
+   ============================================================ */
+.section-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--pink);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+  background: none;
+  border: none;
+  text-decoration: none;
+}
+.section-back-btn:hover { color: var(--white); }
 </style>
 </head>
 <body>
@@ -1082,7 +1245,7 @@ footer {
 <div id="main-page">
 
   <header>
-    <a class="logo" href="#hero">HF<span>543</span></a>
+    <a class="logo" href="#" onclick="location.hash='';return false;">HF<span>543</span></a>
     <button class="hamburger" id="hamburger-btn" aria-label="Open menu">
       <span></span>
       <span></span>
@@ -1095,219 +1258,50 @@ footer {
   <nav id="nav-drawer">
     <button id="close-drawer">✕ Close</button>
     <ul>
-      <li><a href="#hero" class="drawer-link">01 — Home</a></li>
-      <li><a href="#music" class="drawer-link">02 — Music</a></li>
-      <li><a href="#film" class="drawer-link">03 — Film</a></li>
-      <li><a href="#series" class="drawer-link">04 — Series</a></li>
-      <li><a href="#illustration" class="drawer-link">05 — Illustration</a></li>
-      <li><a href="#comics" class="drawer-link">06 — Comics</a></li>
-      <li><a href="#apps" class="drawer-link">07 — Apps</a></li>
-      <li><a href="#fashion" class="drawer-link">08 — Fashion</a></li>
-      <li><a href="#youtube" class="drawer-link">09 — YouTube</a></li>
-      <li><a href="#socials" class="drawer-link">10 — Socials</a></li>
-      <li><a href="#web" class="drawer-link">11 — Web</a></li>
-      <li><a href="#projects" class="drawer-link">12 — Projects</a></li>
-      <li><a href="#profile" class="drawer-link">13 — Profile</a></li>
-      <li><a href="#merch" class="drawer-link">14 — Merch</a></li>
-      <li><a href="#contact" class="drawer-link">15 — Contact</a></li>
-      <li><a href="#misc" class="drawer-link">16 — Misc</a></li>
+      <li><a href="#" onclick="location.hash='';closeDrawer();return false;" class="drawer-link">01 — Home</a></li>
+      <li><a href="#music" onclick="location.hash='music';closeDrawer();return false;" class="drawer-link">02 — Music</a></li>
+      <li><a href="#film" onclick="location.hash='film';closeDrawer();return false;" class="drawer-link">03 — Film</a></li>
+      <li><a href="#series" onclick="location.hash='series';closeDrawer();return false;" class="drawer-link">04 — Series</a></li>
+      <li><a href="#illustration" onclick="location.hash='illustration';closeDrawer();return false;" class="drawer-link">05 — Illustration</a></li>
+      <li><a href="#comics" onclick="location.hash='comics';closeDrawer();return false;" class="drawer-link">06 — Comics</a></li>
+      <li><a href="#apps" onclick="location.hash='apps';closeDrawer();return false;" class="drawer-link">07 — Apps</a></li>
+      <li><a href="#fashion" onclick="location.hash='fashion';closeDrawer();return false;" class="drawer-link">08 — Fashion</a></li>
+      <li><a href="#youtube" onclick="location.hash='youtube';closeDrawer();return false;" class="drawer-link">09 — YouTube</a></li>
+      <li><a href="#socials" onclick="location.hash='socials';closeDrawer();return false;" class="drawer-link">10 — Socials</a></li>
+      <li><a href="#web" onclick="location.hash='web';closeDrawer();return false;" class="drawer-link">11 — Web</a></li>
+      <li><a href="#projects" onclick="location.hash='projects';closeDrawer();return false;" class="drawer-link">12 — Projects</a></li>
+      <li><a href="#profile" onclick="location.hash='profile';closeDrawer();return false;" class="drawer-link">13 — Profile</a></li>
+      <li><a href="#merch" onclick="location.hash='merch';closeDrawer();return false;" class="drawer-link">14 — Merch</a></li>
+      <li><a href="#contact" onclick="location.hash='contact';closeDrawer();return false;" class="drawer-link">15 — Contact</a></li>
+      <li><a href="#misc" onclick="location.hash='misc';closeDrawer();return false;" class="drawer-link">16 — Misc</a></li>
     </ul>
   </nav>
 
-  <!-- Hero -->
-  <section id="hero">
-    <div class="hero-glitch" data-text="HFACTOR543">HFACTOR543</div>
-    <div class="hero-sub">Creative Empire Unlocked</div>
-    <div class="hero-desc">Music · Film · Art · Fashion · Code · Comics · Gaming — all under one roof, all from a single unseen force. HFactor543 Studios.</div>
-    <a href="#music" class="hero-cta">Enter the Studio →</a>
-  </section>
+  <!-- Router renders content here -->
+  <div id="main-content"></div>
 
-  <!-- Music -->
-  <section id="music">
-    <div class="section-label">02 — Discography</div>
-    <div class="section-title">Music</div>
-    <div class="section-sub">Tracks, EPs, soundscapes, and studio releases.</div>
-    <div class="cards-grid" id="music-cards"></div>
-  </section>
-
-  <!-- Film -->
-  <section id="film">
-    <div class="section-label">03 — Filmography</div>
-    <div class="section-title">Film</div>
-    <div class="section-sub">Short films, features, and visual storytelling.</div>
-    <div class="cards-grid" id="film-cards"></div>
-  </section>
-
-  <!-- Series -->
-  <section id="series">
-    <div class="section-label">04 — Serialised</div>
-    <div class="section-title">Series</div>
-    <div class="section-sub">Episodic content and ongoing story arcs.</div>
-    <div class="cards-grid" id="series-cards"></div>
-  </section>
-
-  <!-- Illustration -->
-  <section id="illustration">
-    <div class="section-label">05 — Visual Art</div>
-    <div class="section-title">Illustration</div>
-    <div class="section-sub">Paintings, digital art, and visual narratives.</div>
-    <div class="cards-grid" id="illustration-cards"></div>
-  </section>
-
-  <!-- Comics -->
-  <section id="comics">
-    <div class="section-label">06 — Sequential Art</div>
-    <div class="section-title">Comics</div>
-    <div class="section-sub">Original comics and graphic narratives.</div>
-    <div class="cards-grid" id="comics-cards"></div>
-  </section>
-
-  <!-- Apps -->
-  <section id="apps">
-    <div class="section-label">07 — Software</div>
-    <div class="section-title">Apps</div>
-    <div class="section-sub">Mobile apps, tools, and digital builds.</div>
-    <div class="cards-grid" id="apps-cards"></div>
-  </section>
-
-  <!-- Fashion -->
-  <section id="fashion">
-    <div class="section-label">08 — Style</div>
-    <div class="section-title">Fashion</div>
-    <div class="section-sub">Looks, editorials, garment design, and curated style.</div>
-    <div class="cards-grid" id="fashion-cards"></div>
-  </section>
-
-  <!-- YouTube -->
-  <section id="youtube">
-    <div class="section-label">09 — Channel</div>
-    <div class="section-title">YouTube</div>
-    <div class="section-sub">Main channel, gaming sub-channel, and reactions.</div>
-    <div class="cards-grid" id="youtube-main-cards"></div>
-    <div class="sub-section-label">Gaming</div>
-    <div class="cards-grid" id="youtube-gaming-cards"></div>
-    <div class="sub-section-label">Reactions</div>
-    <div class="cards-grid" id="youtube-reactions-cards"></div>
-  </section>
-
-  <!-- Socials -->
-  <section id="socials">
-    <div class="section-label">10 — Connect</div>
-    <div class="section-title">Socials</div>
-    <div class="section-sub">Every platform. One studio.</div>
-    <div class="social-section-label">Video &amp; Live</div>
-    <div class="social-grid" id="socials-video"></div>
-    <div class="social-section-label">Messaging &amp; Community</div>
-    <div class="social-grid" id="socials-messaging"></div>
-    <div class="social-section-label">Social Media</div>
-    <div class="social-grid" id="socials-social"></div>
-    <div class="social-section-label">Creative &amp; Writing</div>
-    <div class="social-grid" id="socials-creative"></div>
-  </section>
-
-  <!-- Web -->
-  <section id="web">
-    <div class="section-label">11 — Digital Builds</div>
-    <div class="section-title">Web</div>
-    <div class="section-sub">Sites, tools, and web experiments built by the studio.</div>
-    <div class="web-list" id="web-items"></div>
-  </section>
-
-  <!-- Projects -->
-  <section id="projects">
-    <div class="section-label">12 — Studio Work</div>
-    <div class="section-title">Projects</div>
-    <div class="section-sub">Design, engineering, and creative builds.</div>
-    <div class="projects-grid" id="project-cards"></div>
-    <div class="sub-section-label">Skills &amp; Capabilities</div>
-    <div class="skills-grid" id="skills-grid"></div>
-  </section>
-
-  <!-- Profile -->
-  <section id="profile">
-    <div class="section-label">13 — Identity</div>
-    <div class="section-title">Profile</div>
-    <div class="section-sub">The studio. The force behind the work.</div>
-    <div id="profile-block"></div>
-  </section>
-
-  <!-- Merch -->
-  <section id="merch">
-    <div class="section-label">14 — Store</div>
-    <div class="section-title">Merch</div>
-    <div class="section-sub">Apparel, collectibles, accessories, digital drops, and prints.</div>
-    <div class="merch-tabs">
-      <button class="merch-tab active" data-tab="apparel">Apparel</button>
-      <button class="merch-tab" data-tab="collectibles">Collectibles</button>
-      <button class="merch-tab" data-tab="accessories">Accessories</button>
-      <button class="merch-tab" data-tab="digital">Digital</button>
-      <button class="merch-tab" data-tab="prints">Prints</button>
-    </div>
-    <div class="merch-panel active" id="merch-apparel"></div>
-    <div class="merch-panel" id="merch-collectibles"></div>
-    <div class="merch-panel" id="merch-accessories"></div>
-    <div class="merch-panel" id="merch-digital"></div>
-    <div class="merch-panel" id="merch-prints"></div>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact">
-    <div class="section-label">15 — Connect</div>
-    <div class="section-title">Contact Us</div>
-    <div class="section-sub">Bookings, collabs, commissions, and enquiries.</div>
-    <form class="contact-form" id="contact-form" autocomplete="off">
-      <div class="form-group">
-        <label class="form-label" for="contact-name">Name</label>
-        <input class="form-input" type="text" id="contact-name" name="name" required placeholder="Your name"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="contact-email">Email</label>
-        <input class="form-input" type="email" id="contact-email" name="email" required placeholder="your@email.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="contact-subject">Subject</label>
-        <input class="form-input" type="text" id="contact-subject" name="subject" required placeholder="What is this about?"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="contact-message">Message</label>
-        <textarea class="form-textarea" id="contact-message" name="message" required placeholder="Write your message here..."></textarea>
-      </div>
-      <button class="form-submit" type="submit">Send Message →</button>
-      <div id="contact-success">✓ Message sent. We'll be in touch.</div>
-    </form>
-  </section>
-
-  <!-- Misc -->
-  <section id="misc">
-    <div class="section-label">16 — Everything Else</div>
-    <div class="section-title">Misc</div>
-    <div class="section-sub">Experiments, collabs, archive, and the rest.</div>
-    <div class="misc-grid" id="misc-items"></div>
-  </section>
-
-  <!-- Footer -->
   <footer>
-    <div class="footer-logo">HF543 STUDIOS</div>
-    <div class="footer-copy">© 2026 HFactor543 Studios · All rights reserved · Built by the studio.</div>
+    <div class="footer-logo">H<span style="color:var(--white)">F</span>543 Studios</div>
+    <div class="footer-copy">© 2026 HFactor543 Studios · All rights reserved · South Africa</div>
   </footer>
 
 </div><!-- end #main-page -->
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <button onclick="document.querySelector('#hero').scrollIntoView({behavior:'smooth'})">
+  <button onclick="location.hash=''">
     <span>🏠</span>
     <span class="nav-label">Home</span>
   </button>
-  <button onclick="document.querySelector('#music').scrollIntoView({behavior:'smooth'})">
+  <button onclick="location.hash='music'">
     <span>🎵</span>
     <span class="nav-label">Music</span>
   </button>
-  <button onclick="document.querySelector('#illustration').scrollIntoView({behavior:'smooth'})">
+  <button onclick="location.hash='illustration'">
     <span>🎨</span>
     <span class="nav-label">Art</span>
   </button>
-  <button onclick="document.querySelector('#merch').scrollIntoView({behavior:'smooth'})">
+  <button onclick="location.hash='merch'">
     <span>🛍️</span>
     <span class="nav-label">Shop</span>
   </button>
@@ -1596,33 +1590,257 @@ function renderMisc(containerId, items) {
   `).join('');
 }
 
-function renderAll(content) {
-  renderCards('music-cards', content.music || []);
-  renderCards('film-cards', content.film || []);
-  renderCards('series-cards', content.series || []);
-  renderCards('illustration-cards', content.illustration || []);
-  renderCards('comics-cards', content.comics || []);
-  renderCards('apps-cards', content.apps || []);
-  renderCards('fashion-cards', content.fashion || []);
-  renderCards('youtube-main-cards', content.youtubeMain || []);
-  renderCards('youtube-gaming-cards', content.youtubeGaming || []);
-  renderCards('youtube-reactions-cards', content.youtubeReactions || []);
-  renderSocialGrid('socials-video', content.socialsVideo || []);
-  renderSocialGrid('socials-messaging', content.socialsMessaging || []);
-  renderSocialGrid('socials-social', content.socialsSocial || []);
-  renderSocialGrid('socials-creative', content.socialsCreative || []);
-  renderWebItems('web-items', content.web || []);
-  renderProjects('project-cards', content.projects || []);
-  renderSkills('skills-grid', content.skills || []);
-  renderProfile('profile-block', content.profile || {});
-  const merch = content.merch || {};
-  renderMerch('merch-apparel', merch.apparel || []);
-  renderMerch('merch-collectibles', merch.collectibles || []);
-  renderMerch('merch-accessories', merch.accessories || []);
-  renderMerch('merch-digital', merch.digital || []);
-  renderMerch('merch-prints', merch.prints || []);
-  renderMisc('misc-items', content.misc || []);
+// ============================================================
+// SECTION DEFINITIONS FOR HOME GRID
+// ============================================================
+const SECTION_DEFS = [
+  { key: 'music',       label: 'Music',        icon: '🎵', contentKey: 'music' },
+  { key: 'film',        label: 'Film',         icon: '🎬', contentKey: 'film' },
+  { key: 'series',      label: 'Series',       icon: '📺', contentKey: 'series' },
+  { key: 'illustration',label: 'Illustration', icon: '🖼️', contentKey: 'illustration' },
+  { key: 'comics',      label: 'Comics',       icon: '📖', contentKey: 'comics' },
+  { key: 'apps',        label: 'Apps',         icon: '📱', contentKey: 'apps' },
+  { key: 'fashion',     label: 'Fashion',      icon: '🖤', contentKey: 'fashion' },
+  { key: 'youtube',     label: 'YouTube',      icon: '▶️', contentKey: 'youtubeMain' },
+  { key: 'socials',     label: 'Socials',      icon: '🌐', contentKey: 'socialsVideo' },
+  { key: 'web',         label: 'Web',          icon: '💻', contentKey: 'web' },
+  { key: 'projects',    label: 'Projects',     icon: '🏗️', contentKey: 'projects' },
+  { key: 'profile',     label: 'Profile',      icon: '🎭', contentKey: null },
+  { key: 'merch',       label: 'Merch',        icon: '🛍️', contentKey: 'merch' },
+  { key: 'misc',        label: 'Misc',         icon: '⚡', contentKey: 'misc' },
+  { key: 'contact',     label: 'Contact',      icon: '📬', contentKey: null },
+];
+
+function getThumb(def, content) {
+  const key = def.contentKey;
+  if (!key) return null;
+  const items = content[key];
+  if (!items) return null;
+  if (Array.isArray(items)) {
+    const first = items.find(i => i.image);
+    return first ? first.image : null;
+  }
+  return null;
 }
+
+function getCount(def, content) {
+  const key = def.contentKey;
+  if (!key) return null;
+  const items = content[key];
+  if (!items) return null;
+  if (Array.isArray(items)) return items.length;
+  if (typeof items === 'object') return Object.keys(items).length;
+  return null;
+}
+
+// ============================================================
+// HOME PAGE RENDERER
+// ============================================================
+function renderHomePage(container) {
+  const content = loadContent();
+  const cardsHtml = SECTION_DEFS.map(def => {
+    const thumb = getThumb(def, content);
+    const count = getCount(def, content);
+    const thumbHtml = thumb
+      ? `<div class="home-card-thumb"><img src="${thumb}" alt="${def.label}" loading="lazy"/></div>`
+      : `<div class="home-card-thumb">${def.icon}</div>`;
+    const countHtml = count !== null ? `${count} item${count !== 1 ? 's' : ''}` : 'View';
+    return `
+      <div class="home-card" onclick="location.hash='${def.key}'">
+        ${thumbHtml}
+        <div class="home-card-arrow">→</div>
+        <div class="home-card-info">
+          <div class="home-card-name">${def.label}</div>
+          <div class="home-card-count">${countHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <!-- Hero always visible on home -->
+    <section id="hero">
+      <img class="hero-character" src="images/spirit-shadow-fullbody.png" alt="Spirit Shadow" loading="eager"/>
+      <div class="hero-glitch" data-text="HFACTOR543">HFACTOR543</div>
+      <div class="hero-sub">Creative Empire Unlocked</div>
+      <div class="hero-desc">Music · Film · Art · Fashion · Code · Comics · Gaming — all under one roof.</div>
+      <a href="#music" class="hero-cta" onclick="location.hash='music';return false;">Enter the Studio →</a>
+    </section>
+    <section style="padding:2rem 1.2rem 4rem;">
+      <div class="section-label">Studio · ${SECTION_DEFS.length} Categories</div>
+      <div class="section-title" style="margin-bottom:1.5rem;">The Studio</div>
+      <div class="home-grid">${cardsHtml}</div>
+    </section>
+  `;
+}
+
+// ============================================================
+// SECTION DETAIL PAGE RENDERER
+// ============================================================
+function renderSectionPage(container, hash) {
+  const content = loadContent();
+
+  // Back button header
+  const backBtn = `<button class="section-back-btn" onclick="history.back()">← Back</button>`;
+
+  switch(hash) {
+    case 'music':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">01 — Discography</div><div class="section-title">Music</div><div class="cards-grid" id="music-cards"></div></section>`;
+      renderCards('music-cards', content.music || []);
+      break;
+    case 'film':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">02 — Cinema</div><div class="section-title">Film</div><div class="cards-grid" id="film-cards"></div></section>`;
+      renderCards('film-cards', content.film || []);
+      break;
+    case 'series':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">03 — Episodic</div><div class="section-title">Series</div><div class="cards-grid" id="series-cards"></div></section>`;
+      renderCards('series-cards', content.series || []);
+      break;
+    case 'illustration':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">04 — Visual Art</div><div class="section-title">Illustration</div><div class="cards-grid" id="illustration-cards"></div></section>`;
+      renderCards('illustration-cards', content.illustration || []);
+      break;
+    case 'comics':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">05 — Sequential Art</div><div class="section-title">Comics</div><div class="cards-grid" id="comics-cards"></div></section>`;
+      renderCards('comics-cards', content.comics || []);
+      break;
+    case 'apps':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">06 — Software</div><div class="section-title">Apps</div><div class="cards-grid" id="apps-cards"></div></section>`;
+      renderCards('apps-cards', content.apps || []);
+      break;
+    case 'fashion':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">07 — Style</div><div class="section-title">Fashion</div><div class="cards-grid" id="fashion-cards"></div></section>`;
+      renderCards('fashion-cards', content.fashion || []);
+      break;
+    case 'youtube':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">08 — Content</div><div class="section-title">YouTube</div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Main Channel</div>
+        <div class="cards-grid" id="youtube-main-cards"></div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin:2rem 0 1rem;">↳ Gaming</div>
+        <div class="cards-grid" id="youtube-gaming-cards"></div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin:2rem 0 1rem;">↳ Reactions</div>
+        <div class="cards-grid" id="youtube-reactions-cards"></div>
+      </section>`;
+      renderCards('youtube-main-cards', content.youtubeMain || []);
+      renderCards('youtube-gaming-cards', content.youtubeGaming || []);
+      renderCards('youtube-reactions-cards', content.youtubeReactions || []);
+      break;
+    case 'socials':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">09 — Connect</div><div class="section-title">Socials</div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:2rem;line-height:1.8;">Every platform. One studio.</p>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Video & Live</div>
+        <div class="socials-grid" id="socials-video" style="margin-bottom:2rem;"></div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Messaging</div>
+        <div class="socials-grid" id="socials-messaging" style="margin-bottom:2rem;"></div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Social Media</div>
+        <div class="socials-grid" id="socials-social" style="margin-bottom:2rem;"></div>
+        <div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Creative & Writing</div>
+        <div class="socials-grid" id="socials-creative"></div>
+      </section>`;
+      renderSocialGrid('socials-video', content.socialsVideo || []);
+      renderSocialGrid('socials-messaging', content.socialsMessaging || []);
+      renderSocialGrid('socials-social', content.socialsSocial || []);
+      renderSocialGrid('socials-creative', content.socialsCreative || []);
+      break;
+    case 'web':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">10 — Web</div><div class="section-title">Web Projects</div><div class="web-list" id="web-items"></div></section>`;
+      renderWebItems('web-items', content.web || []);
+      break;
+    case 'projects':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">11 — Build Log</div><div class="section-title">Projects</div><div class="projects-grid" id="project-cards" style="margin-bottom:2rem;"></div><div class="section-sublabel" style="font-size:11px;color:var(--pink);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Skills Being Built</div><div class="skills-grid" id="skills-grid"></div></section>`;
+      renderProjects('project-cards', content.projects || []);
+      renderSkills('skills-grid', content.skills || []);
+      break;
+    case 'profile':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">12 — Identity</div><div class="section-title">Profile</div><div id="profile-block"></div></section>`;
+      renderProfile('profile-block', content.profile || {});
+      break;
+    case 'merch':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">13 — Store</div><div class="section-title">Merch</div>
+        <div class="merch-featured-banner">
+          <img src="images/spirit-shadow-portrait.png" alt="Spirit Shadow" class="merch-featured-img" loading="lazy"/>
+          <div class="merch-featured-text">
+            <div class="merch-featured-name">H<span style="color:var(--pink)">F</span>actor543 · Spirit Shadow</div>
+            <div class="merch-featured-desc">Official HFactor543 Studios merchandise. Apparel, collectibles, accessories, digital goods and prints.</div>
+          </div>
+        </div>
+        <div class="merch-tabs">
+          <button class="merch-tab active" data-tab="apparel">Apparel</button>
+          <button class="merch-tab" data-tab="collectibles">Collectibles</button>
+          <button class="merch-tab" data-tab="accessories">Accessories</button>
+          <button class="merch-tab" data-tab="digital">Digital</button>
+          <button class="merch-tab" data-tab="prints">Prints</button>
+        </div>
+        <div class="merch-panel active" id="merch-apparel"></div>
+        <div class="merch-panel" id="merch-collectibles"></div>
+        <div class="merch-panel" id="merch-accessories"></div>
+        <div class="merch-panel" id="merch-digital"></div>
+        <div class="merch-panel" id="merch-prints"></div>
+      </section>`;
+      const merch = content.merch || {};
+      renderMerch('merch-apparel', merch.apparel || []);
+      renderMerch('merch-collectibles', merch.collectibles || []);
+      renderMerch('merch-accessories', merch.accessories || []);
+      renderMerch('merch-digital', merch.digital || []);
+      renderMerch('merch-prints', merch.prints || []);
+      // Rewire merch tabs after injection
+      document.querySelectorAll('.merch-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.merch-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.merch-panel').forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          const panel = document.getElementById('merch-' + tab.dataset.tab);
+          if (panel) panel.classList.add('active');
+        });
+      });
+      break;
+    case 'misc':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;">${backBtn}<div class="section-label">14 — Everything Else</div><div class="section-title">Misc</div><div class="skills-grid" id="misc-items"></div></section>`;
+      renderMisc('misc-items', content.misc || []);
+      break;
+    case 'contact':
+      container.innerHTML = `<section style="padding:2rem 1.2rem 4rem;" id="contact">${backBtn}<div class="section-label">15 — Connect</div><div class="section-title">Contact Us</div>
+        <form id="contact-form" style="max-width:480px;">
+          <div class="contact-field"><label class="contact-label">Name</label><input class="contact-input" type="text" name="name" required/></div>
+          <div class="contact-field"><label class="contact-label">Email</label><input class="contact-input" type="email" name="email" required/></div>
+          <div class="contact-field"><label class="contact-label">Subject</label><input class="contact-input" type="text" name="subject" required/></div>
+          <div class="contact-field"><label class="contact-label">Message</label><textarea class="contact-input" name="message" rows="5" required></textarea></div>
+          <button type="submit" class="hero-cta" style="cursor:pointer;background:var(--pink);color:#000;border:none;">Send Message →</button>
+          <div id="contact-success" style="display:none;color:var(--pink);font-size:12px;margin-top:1rem;">Message received. We'll get back to you.</div>
+        </form>
+      </section>`;
+      document.getElementById('contact-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
+        contacts.push({ name: this.name.value, email: this.email.value, subject: this.subject.value, message: this.message.value, date: new Date().toISOString() });
+        localStorage.setItem('hf543_contacts', JSON.stringify(contacts));
+        document.getElementById('contact-success').style.display = 'block';
+        this.reset();
+        setTimeout(() => { document.getElementById('contact-success').style.display = 'none'; }, 5000);
+      });
+      break;
+    default:
+      renderHomePage(container);
+  }
+}
+
+// ============================================================
+// ROUTER
+// ============================================================
+function router() {
+  const hash = location.hash.slice(1) || '';
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) return;
+
+  if (!hash || hash === 'home') {
+    renderHomePage(mainContent);
+  } else {
+    renderSectionPage(mainContent, hash);
+  }
+  window.scrollTo(0, 0);
+}
+
+window.addEventListener('hashchange', router);
 
 // ============================================================
 // PARTICLES
@@ -1686,8 +1904,7 @@ function showMain() {
     boot.style.display = 'none';
     document.getElementById('main-page').style.display = 'block';
     initParticles();
-    const content = loadContent();
-    renderAll(content);
+    router();
   }, 500);
 }
 
@@ -1701,43 +1918,6 @@ document.getElementById('hamburger-btn').addEventListener('click', openDrawer);
 document.getElementById('close-drawer').addEventListener('click', closeDrawer);
 document.getElementById('nav-overlay').addEventListener('click', closeDrawer);
 document.getElementById('bottom-menu-btn').addEventListener('click', openDrawer);
-
-document.querySelectorAll('.drawer-link').forEach(link => {
-  link.addEventListener('click', closeDrawer);
-});
-
-// ============================================================
-// MERCH TABS
-// ============================================================
-document.querySelectorAll('.merch-tab').forEach(tab => {
-  tab.addEventListener('click', function() {
-    document.querySelectorAll('.merch-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.merch-panel').forEach(p => p.classList.remove('active'));
-    this.classList.add('active');
-    const panelId = 'merch-' + this.dataset.tab;
-    const panel = document.getElementById(panelId);
-    if (panel) panel.classList.add('active');
-  });
-});
-
-// ============================================================
-// CONTACT FORM
-// ============================================================
-document.getElementById('contact-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const contacts = JSON.parse(localStorage.getItem('hf543_contacts') || '[]');
-  contacts.push({
-    name: this.name.value,
-    email: this.email.value,
-    subject: this.subject.value,
-    message: this.message.value,
-    date: new Date().toISOString()
-  });
-  localStorage.setItem('hf543_contacts', JSON.stringify(contacts));
-  document.getElementById('contact-success').style.display = 'block';
-  this.reset();
-  setTimeout(() => { document.getElementById('contact-success').style.display = 'none'; }, 5000);
-});
 
 // ============================================================
 // SERVICE WORKER
@@ -1772,8 +1952,7 @@ document.getElementById('pwa-dismiss').addEventListener('click', () => {
 // ============================================================
 window.addEventListener('storage', e => {
   if (e.key === 'hf543_content') {
-    const content = loadContent();
-    renderAll(content);
+    router();
   }
 });
 

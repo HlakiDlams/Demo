@@ -22,9 +22,10 @@ function createSplash() {
 
 function createMainWindow() {
   main = new BrowserWindow({
-    width: 420,
+    width: 1280,
     height: 860,
-    minWidth: 360,
+    minWidth: 1024,
+    minHeight: 700,
     backgroundColor: '#080808',
     autoHideMenuBar: true,
     show: false,

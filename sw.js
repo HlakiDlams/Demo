@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hf543-v2';
+const CACHE_NAME = 'hf543-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',

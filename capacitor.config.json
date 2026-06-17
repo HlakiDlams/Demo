@@ -1,7 +1,7 @@
 {
   "appId": "com.hfactor543.studios",
   "appName": "HF543 Studios",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"

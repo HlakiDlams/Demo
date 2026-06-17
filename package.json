@@ -11,7 +11,7 @@
     "cap:build": "npx cap build android",
     "make-icon": "node make-icon.js",
     "electron:start": "npm run build && electron .",
-    "electron:build": "npm run build && npm run make-icon && electron-builder --win nsis"
+    "electron:build": "npm run build && npm run make-icon && electron-builder --win nsis --publish never"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
